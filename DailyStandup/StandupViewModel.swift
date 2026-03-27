@@ -127,6 +127,8 @@ class StandupViewModel: ObservableObject {
                 markdown.addTodoEntry(
                     repoPath: settings.repoPath,
                     date: dateString,
+                    userName: settings.userName,
+                    roles: settings.userRoles,
                     content: todoText
                 )
 

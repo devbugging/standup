@@ -44,7 +44,7 @@ class MarkdownManager {
         writeLines(filePath, lines)
     }
 
-    func addTodoEntry(repoPath: String, date: String, content: String) {
+    func addTodoEntry(repoPath: String, date: String, userName: String, roles: String, content: String) {
         let filePath = "\(repoPath)/projects/todo.md"
         guard !content.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
 
@@ -59,20 +59,19 @@ class MarkdownManager {
                 return "- [ ] " + line
             }
 
+        let personLines = ["### \(userName) (\(roles))", ""] + todoLines
         let dateHeader = "## \(date)"
 
         if let dateIdx = lines.firstIndex(where: { $0 == dateHeader }) {
-            // Date exists — find end of section
             var insertIdx = dateIdx + 1
             while insertIdx < lines.count {
                 if lines[insertIdx].hasPrefix("## ") { break }
                 insertIdx += 1
             }
-            lines.insert(contentsOf: todoLines, at: insertIdx)
+            lines.insert(contentsOf: [""] + personLines + [""], at: insertIdx)
         } else {
-            // New date section
             let titleIdx = lines.firstIndex(where: { $0.hasPrefix("# ") }) ?? 0
-            lines.insert(contentsOf: ["", dateHeader, ""] + todoLines + [""], at: titleIdx + 1)
+            lines.insert(contentsOf: ["", dateHeader, ""] + personLines + [""], at: titleIdx + 1)
         }
 
         writeLines(filePath, lines)
