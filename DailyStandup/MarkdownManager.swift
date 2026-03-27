@@ -77,6 +77,54 @@ class MarkdownManager {
         writeLines(filePath, lines)
     }
 
+    // MARK: - Read Todos
+
+    /// Returns all unchecked todo items for the given user (or all ungrouped items).
+    func readPendingTodos(repoPath: String, userName: String) -> [String] {
+        let filePath = "\(repoPath)/projects/todo.md"
+        let lines = readLines(filePath, fallback: "# To Do")
+
+        var results: [String] = []
+        var inUserSection = false
+        var inUngroupedDateSection = false
+        var dateHasPersonHeaders = false
+        var currentDate = ""
+
+        // Two-pass: first detect which date sections have person headers
+        var datesWithHeaders = Set<String>()
+        var activeDate = ""
+        for line in lines {
+            if line.hasPrefix("## ") && !line.hasPrefix("### ") {
+                activeDate = line
+            } else if line.hasPrefix("### ") {
+                datesWithHeaders.insert(activeDate)
+            }
+        }
+
+        // Second pass: collect items
+        for line in lines {
+            if line.hasPrefix("## ") && !line.hasPrefix("### ") {
+                currentDate = line
+                dateHasPersonHeaders = datesWithHeaders.contains(currentDate)
+                inUserSection = false
+                inUngroupedDateSection = !dateHasPersonHeaders
+            } else if line.hasPrefix("### ") {
+                let header = line.dropFirst(4).trimmingCharacters(in: .whitespaces)
+                inUserSection = header.lowercased().hasPrefix(userName.lowercased())
+                inUngroupedDateSection = false
+            } else if line.hasPrefix("- [ ] ") {
+                if inUserSection || inUngroupedDateSection {
+                    let item = String(line.dropFirst(6)).trimmingCharacters(in: .whitespaces)
+                    if !item.isEmpty && !results.contains(item) {
+                        results.append(item)
+                    }
+                }
+            }
+        }
+
+        return results
+    }
+
     // MARK: - File helpers
 
     private func readLines(_ path: String, fallback: String) -> [String] {

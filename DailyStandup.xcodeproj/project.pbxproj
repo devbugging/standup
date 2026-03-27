@@ -17,6 +17,7 @@
 		AEBD00F5616F7AB1396494FE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 40BB37B6D60E87147970329B /* Assets.xcassets */; };
 		B67E8D80148EB33D053AD2B1 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4962EA08AFE8496842BC7B2 /* AppState.swift */; };
 		B9E7D7225EEDB0E1F4E0120F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99FEDD03698F2C726FDF6DD /* SettingsView.swift */; };
+		CA5AB953A6F24FDD32043D64 /* TodoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94531DD23CBFCCDC03B900E6 /* TodoView.swift */; };
 		F50D1AEC635DEFA51C869048 /* GitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4A1B0B51D74D26956936053 /* GitService.swift */; };
 		FDB2332C7D0F03F1CDD501EF /* MarkdownManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 034A506F071884773AF74476 /* MarkdownManager.swift */; };
 /* End PBXBuildFile section */
@@ -30,6 +31,7 @@
 		40BB37B6D60E87147970329B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		6D58073F69A8154E62D28FA8 /* StandupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandupView.swift; sourceTree = "<group>"; };
 		84ABB68DBBC530E8440816A2 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
+		94531DD23CBFCCDC03B900E6 /* TodoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoView.swift; sourceTree = "<group>"; };
 		B96DE26EF9B77907E905C85B /* DailyStandup.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DailyStandup.entitlements; sourceTree = "<group>"; };
 		C4962EA08AFE8496842BC7B2 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		D87A504766DEBDDB79C72C64 /* DailyStandup.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DailyStandup.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -79,6 +81,7 @@
 				D99FEDD03698F2C726FDF6DD /* SettingsView.swift */,
 				6D58073F69A8154E62D28FA8 /* StandupView.swift */,
 				0DAE11EB0B5E41C4E8A4C210 /* StandupViewModel.swift */,
+				94531DD23CBFCCDC03B900E6 /* TodoView.swift */,
 				F4F1A2EF4A843F6E5C84CFCC /* WhisperService.swift */,
 				075A23070F29E658024E0C9A /* Resources */,
 			);
@@ -162,6 +165,7 @@
 				B9E7D7225EEDB0E1F4E0120F /* SettingsView.swift in Sources */,
 				0AD3DB78659C5860C152C7EC /* StandupView.swift in Sources */,
 				09599BECFB674E562BEFC0FF /* StandupViewModel.swift in Sources */,
+				CA5AB953A6F24FDD32043D64 /* TodoView.swift in Sources */,
 				125BDA6C8F2255420E6C88FF /* WhisperService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

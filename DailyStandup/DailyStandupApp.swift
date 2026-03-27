@@ -24,6 +24,11 @@ struct MenuBarContent: View {
         }
         .keyboardShortcut("s")
 
+        Button("Show Daily To-Do") {
+            WindowManager.shared.showTodos()
+        }
+        .keyboardShortcut("t")
+
         Divider()
 
         Button("Settings...") {
@@ -89,6 +94,7 @@ class WindowManager {
     static let shared = WindowManager()
     private var standupWindow: NSWindow?
     private var settingsWindow: NSWindow?
+    private var todoWindow: NSWindow?
 
     func showStandup() {
         let view = StandupView()
@@ -134,6 +140,30 @@ class WindowManager {
         settingsWindow?.contentView = hostingView
         settingsWindow?.center()
         settingsWindow?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    func showTodos() {
+        let view = TodoView()
+        let hostingView = NSHostingView(rootView: view)
+
+        if todoWindow == nil {
+            todoWindow = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 520, height: 580),
+                styleMask: [.titled, .closable, .resizable, .fullSizeContentView],
+                backing: .buffered,
+                defer: false
+            )
+            todoWindow?.titlebarAppearsTransparent = true
+            todoWindow?.titleVisibility = .hidden
+            todoWindow?.isReleasedWhenClosed = false
+            todoWindow?.setFrameAutosaveName("TodoWindow")
+            todoWindow?.backgroundColor = .clear
+            todoWindow?.isMovableByWindowBackground = true
+        }
+        todoWindow?.contentView = hostingView
+        todoWindow?.center()
+        todoWindow?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
 }
