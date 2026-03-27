@@ -218,19 +218,16 @@ struct StandupView: View {
         VStack(spacing: 0) {
             Spacer(minLength: 40)
 
-            // Animated rings
+            // Animated rings that respond to audio level
             ZStack {
+                let level = CGFloat(viewModel.recorder.audioLevel)
+
                 ForEach(0..<3, id: \.self) { i in
                     Circle()
                         .stroke(Color.red.opacity(0.12 - Double(i) * 0.03), lineWidth: 2)
                         .frame(width: CGFloat(80 + i * 40), height: CGFloat(80 + i * 40))
-                        .scaleEffect(viewModel.recorder.isRecording ? 1.15 : 0.9)
-                        .animation(
-                            .easeInOut(duration: 1.2 + Double(i) * 0.3)
-                                .repeatForever(autoreverses: true)
-                                .delay(Double(i) * 0.15),
-                            value: viewModel.recorder.isRecording
-                        )
+                        .scaleEffect(1.0 + level * CGFloat(0.15 + Double(i) * 0.08))
+                        .animation(.easeOut(duration: 0.15), value: level)
                 }
 
                 Circle()
@@ -243,7 +240,9 @@ struct StandupView: View {
                         )
                     )
                     .frame(width: 56, height: 56)
-                    .shadow(color: .red.opacity(0.4), radius: 20, y: 4)
+                    .scaleEffect(1.0 + level * 0.12)
+                    .animation(.easeOut(duration: 0.15), value: level)
+                    .shadow(color: .red.opacity(0.3 + Double(level) * 0.3), radius: 16 + level * 10, y: 4)
             }
 
             Spacer().frame(height: 36)

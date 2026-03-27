@@ -67,6 +67,7 @@ class StandupViewModel: ObservableObject {
 
         Task {
             do {
+                try recorder.validateRecording()
                 let settings = AppState.shared.settings
 
                 statusMessage = "Transcribing audio..."
