@@ -7,22 +7,22 @@ enum TranscriptionError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .noAPIKey: return "ElevenLabs API key not configured. Open Settings to add it."
+        case .noAPIKey: return "OpenAI API key not configured. Open Settings to add it."
         case .requestFailed(let msg): return "Transcription failed: \(msg)"
-        case .invalidResponse: return "Invalid response from ElevenLabs"
+        case .invalidResponse: return "Invalid response from OpenAI Whisper"
         }
     }
 }
 
-class ElevenLabsService {
+class WhisperService {
 
     func transcribe(fileURL: URL, apiKey: String) async throws -> String {
         guard !apiKey.isEmpty else { throw TranscriptionError.noAPIKey }
 
-        let url = URL(string: "https://api.elevenlabs.io/v1/speech-to-text")!
+        let url = URL(string: "https://api.openai.com/v1/audio/transcriptions")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
-        request.setValue(apiKey, forHTTPHeaderField: "xi-api-key")
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
 
         let boundary = UUID().uuidString
         request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
@@ -30,10 +30,10 @@ class ElevenLabsService {
         let audioData = try Data(contentsOf: fileURL)
         var body = Data()
 
-        // model_id
+        // model
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
-        body.append("Content-Disposition: form-data; name=\"model_id\"\r\n\r\n".data(using: .utf8)!)
-        body.append("scribe_v1\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"model\"\r\n\r\n".data(using: .utf8)!)
+        body.append("whisper-1\r\n".data(using: .utf8)!)
 
         // audio file
         body.append("--\(boundary)\r\n".data(using: .utf8)!)
@@ -57,11 +57,11 @@ class ElevenLabsService {
             throw TranscriptionError.requestFailed("HTTP \(httpResponse.statusCode): \(errorMsg)")
         }
 
-        struct STTResponse: Decodable {
+        struct WhisperResponse: Decodable {
             let text: String
         }
 
-        let decoded = try JSONDecoder().decode(STTResponse.self, from: data)
+        let decoded = try JSONDecoder().decode(WhisperResponse.self, from: data)
         return decoded.text
     }
 }

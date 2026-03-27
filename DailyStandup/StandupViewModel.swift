@@ -20,7 +20,7 @@ class StandupViewModel: ObservableObject {
     @Published var statusMessage = ""
 
     let recorder = AudioRecorder()
-    private let transcriber = ElevenLabsService()
+    private let whisper = WhisperService()
     private let openai = OpenAIService()
     private let git = GitService()
     private let markdown = MarkdownManager()
@@ -70,9 +70,9 @@ class StandupViewModel: ObservableObject {
                 let settings = AppState.shared.settings
 
                 statusMessage = "Transcribing audio..."
-                let transcript = try await transcriber.transcribe(
+                let transcript = try await whisper.transcribe(
                     fileURL: recorder.recordingURL,
-                    apiKey: settings.elevenLabsAPIKey
+                    apiKey: settings.openAIAPIKey
                 )
 
                 statusMessage = "Structuring notes with AI..."

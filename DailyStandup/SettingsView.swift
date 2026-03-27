@@ -33,23 +33,14 @@ struct SettingsView: View {
                         }
                     }
 
-                    // API Keys
-                    settingsCard(title: "API Keys", icon: "key") {
-                        VStack(spacing: 14) {
-                            apiKeyField(
-                                label: "ElevenLabs",
-                                sublabel: "Speech-to-text transcription",
-                                placeholder: "xi-...",
-                                text: $appState.settings.elevenLabsAPIKey
-                            )
-                            Divider().opacity(0.3)
-                            apiKeyField(
-                                label: "OpenAI",
-                                sublabel: "Structures and rewrites notes",
-                                placeholder: "sk-...",
-                                text: $appState.settings.openAIAPIKey
-                            )
-                        }
+                    // API Key
+                    settingsCard(title: "OpenAI", icon: "key") {
+                        apiKeyField(
+                            label: "API Key",
+                            sublabel: "Whisper transcription + GPT note structuring",
+                            placeholder: "sk-...",
+                            text: $appState.settings.openAIAPIKey
+                        )
                     }
 
                     // Notification
