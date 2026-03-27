@@ -1,5 +1,6 @@
 import Foundation
 import AVFoundation
+import CoreAudio
 
 enum RecordingError: LocalizedError {
     case permissionDenied
@@ -13,9 +14,15 @@ enum RecordingError: LocalizedError {
         case .failedToStart(let msg):
             return "Failed to start recording: \(msg)"
         case .noAudioCaptured:
-            return "Recording file is empty — no audio was captured. Check your microphone."
+            return "Recording file is empty — no audio was captured. Check your microphone selection in Settings."
         }
     }
+}
+
+struct AudioDevice: Identifiable, Hashable {
+    let id: AudioDeviceID
+    let name: String
+    let uid: String
 }
 
 class AudioRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
@@ -24,6 +31,7 @@ class AudioRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
     @Published var elapsedTime: TimeInterval = 0
     @Published var permissionGranted = false
     @Published var audioLevel: Float = 0
+    @Published var availableDevices: [AudioDevice] = []
     private var timer: Timer?
     private var levelTimer: Timer?
 
@@ -34,6 +42,7 @@ class AudioRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
     override init() {
         super.init()
         checkPermission()
+        refreshDevices()
     }
 
     func checkPermission() {
@@ -51,11 +60,109 @@ class AudioRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
         }
     }
 
+    // MARK: - Device Enumeration
+
+    func refreshDevices() {
+        availableDevices = listInputDevices()
+    }
+
+    private func listInputDevices() -> [AudioDevice] {
+        var propertyAddress = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyDevices,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+
+        var dataSize: UInt32 = 0
+        var status = AudioObjectGetPropertyDataSize(
+            AudioObjectID(kAudioObjectSystemObject),
+            &propertyAddress, 0, nil, &dataSize
+        )
+        guard status == noErr else { return [] }
+
+        let deviceCount = Int(dataSize) / MemoryLayout<AudioDeviceID>.size
+        var deviceIDs = [AudioDeviceID](repeating: 0, count: deviceCount)
+        status = AudioObjectGetPropertyData(
+            AudioObjectID(kAudioObjectSystemObject),
+            &propertyAddress, 0, nil, &dataSize, &deviceIDs
+        )
+        guard status == noErr else { return [] }
+
+        return deviceIDs.compactMap { deviceID -> AudioDevice? in
+            // Check if device has input channels
+            var inputAddress = AudioObjectPropertyAddress(
+                mSelector: kAudioDevicePropertyStreamConfiguration,
+                mScope: kAudioDevicePropertyScopeInput,
+                mElement: kAudioObjectPropertyElementMain
+            )
+
+            var inputSize: UInt32 = 0
+            guard AudioObjectGetPropertyDataSize(deviceID, &inputAddress, 0, nil, &inputSize) == noErr else {
+                return nil
+            }
+
+            let bufferListPointer = UnsafeMutablePointer<AudioBufferList>.allocate(capacity: 1)
+            defer { bufferListPointer.deallocate() }
+            guard AudioObjectGetPropertyData(deviceID, &inputAddress, 0, nil, &inputSize, bufferListPointer) == noErr else {
+                return nil
+            }
+
+            let bufferList = UnsafeMutableAudioBufferListPointer(bufferListPointer)
+            let inputChannels = bufferList.reduce(0) { $0 + Int($1.mNumberChannels) }
+            guard inputChannels > 0 else { return nil }
+
+            // Get device name
+            guard let name = getStringProperty(kAudioDevicePropertyDeviceNameCFString, for: deviceID),
+                  let uid = getStringProperty(kAudioDevicePropertyDeviceUID, for: deviceID) else {
+                return nil
+            }
+
+            return AudioDevice(id: deviceID, name: name, uid: uid)
+        }
+    }
+
+    private func getStringProperty(_ selector: AudioObjectPropertySelector, for deviceID: AudioDeviceID) -> String? {
+        var address = AudioObjectPropertyAddress(
+            mSelector: selector,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+        var value: Unmanaged<CFString>?
+        var size = UInt32(MemoryLayout<Unmanaged<CFString>>.size)
+        let status = AudioObjectGetPropertyData(deviceID, &address, 0, nil, &size, &value)
+        guard status == noErr, let cf = value?.takeUnretainedValue() else { return nil }
+        return cf as String
+    }
+
+    func setInputDevice(uid: String) {
+        guard let device = availableDevices.first(where: { $0.uid == uid }) else { return }
+
+        var deviceID = device.id
+        var propertyAddress = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyDefaultInputDevice,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain
+        )
+
+        AudioObjectSetPropertyData(
+            AudioObjectID(kAudioObjectSystemObject),
+            &propertyAddress, 0, nil,
+            UInt32(MemoryLayout<AudioDeviceID>.size), &deviceID
+        )
+    }
+
+    // MARK: - Recording
+
     func startRecording() throws {
-        // Re-check permission
         guard AVCaptureDevice.authorizationStatus(for: .audio) == .authorized else {
             checkPermission()
             throw RecordingError.permissionDenied
+        }
+
+        // Set the selected input device
+        let selectedUID = AppState.shared.settings.selectedMicUID
+        if !selectedUID.isEmpty {
+            setInputDevice(uid: selectedUID)
         }
 
         try? FileManager.default.removeItem(at: recordingURL)
@@ -85,19 +192,16 @@ class AudioRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
         isRecording = true
         elapsedTime = 0
 
-        // Elapsed time timer
         let t = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
             self?.elapsedTime += 1
         }
         RunLoop.main.add(t, forMode: .common)
         timer = t
 
-        // Audio level timer for visual feedback
         let lt = Timer(timeInterval: 0.1, repeats: true) { [weak self] _ in
             guard let recorder = self?.audioRecorder, recorder.isRecording else { return }
             recorder.updateMeters()
             let level = recorder.averagePower(forChannel: 0)
-            // Normalize from dB (-160...0) to 0...1
             let normalized = max(0, min(1, (level + 50) / 50))
             self?.audioLevel = normalized
         }
@@ -107,6 +211,7 @@ class AudioRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
 
     func stopRecording() {
         audioRecorder?.stop()
+        audioRecorder = nil
         isRecording = false
         audioLevel = 0
         timer?.invalidate()
@@ -115,7 +220,6 @@ class AudioRecorder: NSObject, ObservableObject, AVAudioRecorderDelegate {
         levelTimer = nil
     }
 
-    /// Verify the recording file exists and has content
     func validateRecording() throws {
         let fm = FileManager.default
         guard fm.fileExists(atPath: recordingURL.path) else {

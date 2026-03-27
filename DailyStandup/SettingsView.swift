@@ -3,6 +3,7 @@ import ServiceManagement
 
 struct SettingsView: View {
     @ObservedObject private var appState = AppState.shared
+    @StateObject private var audioRecorder = AudioRecorder()
     @State private var showingSaved = false
 
     var body: some View {
@@ -41,6 +42,39 @@ struct SettingsView: View {
                             placeholder: "sk-...",
                             text: $appState.settings.openAIAPIKey
                         )
+                    }
+
+                    // Microphone
+                    settingsCard(title: "Microphone", icon: "mic") {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Picker("Input Device", selection: $appState.settings.selectedMicUID) {
+                                Text("System Default").tag("")
+                                ForEach(audioRecorder.availableDevices) { device in
+                                    Text(device.name).tag(device.uid)
+                                }
+                            }
+                            .labelsHidden()
+
+                            HStack(spacing: 6) {
+                                Image(systemName: "info.circle")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(.tertiary)
+                                Text("If recording is silent, try selecting a different device")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(.tertiary)
+                            }
+
+                            Button(action: { audioRecorder.refreshDevices() }) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "arrow.clockwise")
+                                        .font(.system(size: 10))
+                                    Text("Refresh Devices")
+                                        .font(.system(size: 11))
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            .foregroundStyle(.secondary)
+                        }
                     }
 
                     // Notification

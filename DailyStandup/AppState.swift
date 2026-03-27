@@ -5,6 +5,7 @@ struct UserSettings: Codable, Equatable {
     var userName: String = ""
     var userRoles: String = ""
     var openAIAPIKey: String = ""
+    var selectedMicUID: String = ""
     var notificationHour: Int = 16
     var notificationMinute: Int = 0
     var repoPath: String = "/Users/gregorg/Dev/projects"

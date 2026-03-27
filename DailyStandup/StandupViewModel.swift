@@ -24,6 +24,15 @@ class StandupViewModel: ObservableObject {
     private let openai = OpenAIService()
     private let git = GitService()
     private let markdown = MarkdownManager()
+    private var cancellables = Set<AnyCancellable>()
+
+    init() {
+        // Forward recorder changes so SwiftUI re-renders
+        recorder.objectWillChange
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.objectWillChange.send() }
+            .store(in: &cancellables)
+    }
 
     var dateString: String {
         let fmt = DateFormatter()
