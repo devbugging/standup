@@ -14,9 +14,7 @@ class TodoViewModel: ObservableObject {
     @Published var phase: TodoViewPhase = .loading
     @Published var todos: [OrganizedTodo] = []
     @Published var summary: String = ""
-
-    private let openai = OpenAIService()
-    private let markdown = MarkdownManager()
+    @Published var cachedTime: String = ""
 
     var formattedDate: String {
         let fmt = DateFormatter()
@@ -24,36 +22,60 @@ class TodoViewModel: ObservableObject {
         return fmt.string(from: Date())
     }
 
+    /// Load from cache first (instant), then fall back to live fetch.
     func load() {
+        // Try cache first
+        if let cached = TodoCache.shared.loadCachedForToday() {
+            applyCache(cached)
+            return
+        }
+
+        // No cache — fetch live
+        phase = .loading
+        fetchLive()
+    }
+
+    /// Force refresh: re-processes from todo.md via OpenAI, ignoring cache.
+    func refresh() {
         phase = .loading
 
         Task {
             do {
-                let settings = AppState.shared.settings
-                let projects = markdown.scanProjects(repoPath: settings.repoPath)
-                let rawItems = markdown.readPendingTodos(
-                    repoPath: settings.repoPath,
-                    userName: settings.userName
-                )
-
-                if rawItems.isEmpty {
-                    phase = .empty
-                    return
-                }
-
-                let result = try await openai.organizeTodos(
-                    rawItems: rawItems,
-                    projects: projects,
-                    userName: settings.userName
-                )
-
-                todos = result.todos
-                summary = result.summary
-                phase = .loaded
+                let cached = try await TodoCache.shared.forceRefresh()
+                applyCache(cached)
             } catch {
                 phase = .error(error.localizedDescription)
             }
         }
+    }
+
+    private func fetchLive() {
+        Task {
+            do {
+                let cached = try await TodoCache.shared.forceRefresh()
+                applyCache(cached)
+            } catch {
+                phase = .error(error.localizedDescription)
+            }
+        }
+    }
+
+    private func applyCache(_ cached: CachedTodoData) {
+        if cached.todos.isEmpty {
+            phase = .empty
+            return
+        }
+
+        todos = cached.todos.map {
+            OrganizedTodo(project: $0.project, task: $0.task, priority: $0.priority)
+        }
+        summary = cached.summary
+
+        let fmt = DateFormatter()
+        fmt.dateFormat = "h:mm a"
+        cachedTime = fmt.string(from: cached.processedAt)
+
+        phase = .loaded
     }
 }
 
@@ -109,7 +131,13 @@ struct TodoView: View {
 
             Spacer()
 
-            Button(action: { viewModel.load() }) {
+            if !viewModel.cachedTime.isEmpty && viewModel.phase == .loaded {
+                Text("Updated \(viewModel.cachedTime)")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(.tertiary)
+            }
+
+            Button(action: { viewModel.refresh() }) {
                 Image(systemName: "arrow.clockwise")
                     .font(.system(size: 13, weight: .medium))
                     .foregroundStyle(.secondary)
@@ -117,6 +145,7 @@ struct TodoView: View {
                     .background(.ultraThinMaterial, in: Circle())
             }
             .buttonStyle(.plain)
+            .help("Re-process todos from file")
         }
         .padding(.horizontal, 24)
         .padding(.top, 20)

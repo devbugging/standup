@@ -151,6 +151,10 @@ class StandupViewModel: ObservableObject {
 
                 phase = .done
                 statusMessage = ""
+
+                // Invalidate and re-process todo cache since new items were added
+                TodoCache.shared.invalidate()
+                TodoCache.shared.refreshIfNeeded()
             } catch {
                 phase = .error(error.localizedDescription)
             }

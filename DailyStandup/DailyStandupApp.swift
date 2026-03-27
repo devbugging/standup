@@ -63,11 +63,26 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
             try? SMAppService.mainApp.register()
         }
 
+        // Process daily todos in background on launch
+        TodoCache.shared.refreshIfNeeded()
+
+        // Re-process on wake from sleep (new day check)
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self,
+            selector: #selector(handleWake),
+            name: NSWorkspace.didWakeNotification,
+            object: nil
+        )
+
         if !AppState.shared.isConfigured {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 WindowManager.shared.showSettings()
             }
         }
+    }
+
+    @objc private func handleWake() {
+        TodoCache.shared.refreshIfNeeded()
     }
 
     func userNotificationCenter(

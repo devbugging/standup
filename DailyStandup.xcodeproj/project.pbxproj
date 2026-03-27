@@ -13,6 +13,7 @@
 		125BDA6C8F2255420E6C88FF /* WhisperService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4F1A2EF4A843F6E5C84CFCC /* WhisperService.swift */; };
 		1C0FDFE00E610C873F20A35D /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 84ABB68DBBC530E8440816A2 /* NotificationManager.swift */; };
 		25BA2D2B80E1AD8BE1E2E1F6 /* OpenAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD80443E51EA4641D394E51F /* OpenAIService.swift */; };
+		5CFAF90CD8F4B4FA56AEC1F0 /* TodoCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = A701822D0563D7D0E3659D4F /* TodoCache.swift */; };
 		9351425D5546900B5BA6076A /* DailyStandupApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00D2E2EC32A679FAC39E3069 /* DailyStandupApp.swift */; };
 		AEBD00F5616F7AB1396494FE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 40BB37B6D60E87147970329B /* Assets.xcassets */; };
 		B67E8D80148EB33D053AD2B1 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4962EA08AFE8496842BC7B2 /* AppState.swift */; };
@@ -32,6 +33,7 @@
 		6D58073F69A8154E62D28FA8 /* StandupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandupView.swift; sourceTree = "<group>"; };
 		84ABB68DBBC530E8440816A2 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		94531DD23CBFCCDC03B900E6 /* TodoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoView.swift; sourceTree = "<group>"; };
+		A701822D0563D7D0E3659D4F /* TodoCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoCache.swift; sourceTree = "<group>"; };
 		B96DE26EF9B77907E905C85B /* DailyStandup.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DailyStandup.entitlements; sourceTree = "<group>"; };
 		C4962EA08AFE8496842BC7B2 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		D87A504766DEBDDB79C72C64 /* DailyStandup.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DailyStandup.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -81,6 +83,7 @@
 				D99FEDD03698F2C726FDF6DD /* SettingsView.swift */,
 				6D58073F69A8154E62D28FA8 /* StandupView.swift */,
 				0DAE11EB0B5E41C4E8A4C210 /* StandupViewModel.swift */,
+				A701822D0563D7D0E3659D4F /* TodoCache.swift */,
 				94531DD23CBFCCDC03B900E6 /* TodoView.swift */,
 				F4F1A2EF4A843F6E5C84CFCC /* WhisperService.swift */,
 				075A23070F29E658024E0C9A /* Resources */,
@@ -165,6 +168,7 @@
 				B9E7D7225EEDB0E1F4E0120F /* SettingsView.swift in Sources */,
 				0AD3DB78659C5860C152C7EC /* StandupView.swift in Sources */,
 				09599BECFB674E562BEFC0FF /* StandupViewModel.swift in Sources */,
+				5CFAF90CD8F4B4FA56AEC1F0 /* TodoCache.swift in Sources */,
 				CA5AB953A6F24FDD32043D64 /* TodoView.swift in Sources */,
 				125BDA6C8F2255420E6C88FF /* WhisperService.swift in Sources */,
 			);
