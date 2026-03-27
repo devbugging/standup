@@ -5,6 +5,7 @@ struct UserSettings: Codable, Equatable {
     var userName: String = ""
     var userRoles: String = ""
     var elevenLabsAPIKey: String = ""
+    var openAIAPIKey: String = ""
     var notificationHour: Int = 16
     var notificationMinute: Int = 0
     var repoPath: String = "/Users/gregorg/Dev/projects"
@@ -36,6 +37,6 @@ class AppState: ObservableObject {
     }
 
     var isConfigured: Bool {
-        !settings.userName.isEmpty && !settings.elevenLabsAPIKey.isEmpty
+        !settings.userName.isEmpty && !settings.elevenLabsAPIKey.isEmpty && !settings.openAIAPIKey.isEmpty
     }
 }

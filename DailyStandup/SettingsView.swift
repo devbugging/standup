@@ -33,21 +33,22 @@ struct SettingsView: View {
                         }
                     }
 
-                    // API
-                    settingsCard(title: "ElevenLabs", icon: "waveform") {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text("API Key")
-                                .font(.system(size: 11, weight: .medium))
-                                .foregroundStyle(.secondary)
-                            SecureField("sk-...", text: $appState.settings.elevenLabsAPIKey)
-                                .textFieldStyle(.plain)
-                                .font(.system(size: 12.5, design: .monospaced))
-                                .padding(10)
-                                .background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .strokeBorder(Color.primary.opacity(0.06), lineWidth: 1)
-                                )
+                    // API Keys
+                    settingsCard(title: "API Keys", icon: "key") {
+                        VStack(spacing: 14) {
+                            apiKeyField(
+                                label: "ElevenLabs",
+                                sublabel: "Speech-to-text transcription",
+                                placeholder: "xi-...",
+                                text: $appState.settings.elevenLabsAPIKey
+                            )
+                            Divider().opacity(0.3)
+                            apiKeyField(
+                                label: "OpenAI",
+                                sublabel: "Structures and rewrites notes",
+                                placeholder: "sk-...",
+                                text: $appState.settings.openAIAPIKey
+                            )
                         }
                     }
 
@@ -215,6 +216,27 @@ struct SettingsView: View {
             RoundedRectangle(cornerRadius: Theme.cardRadius)
                 .strokeBorder(Color.primary.opacity(0.05), lineWidth: 1)
         )
+    }
+
+    private func apiKeyField(label: String, sublabel: String, placeholder: String, text: Binding<String>) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: 6) {
+                Text(label)
+                    .font(.system(size: 11, weight: .semibold))
+                Text(sublabel)
+                    .font(.system(size: 10))
+                    .foregroundStyle(.tertiary)
+            }
+            SecureField(placeholder, text: text)
+                .textFieldStyle(.plain)
+                .font(.system(size: 12.5, design: .monospaced))
+                .padding(10)
+                .background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .strokeBorder(Color.primary.opacity(0.06), lineWidth: 1)
+                )
+        }
     }
 
     private func settingsField(_ label: String, text: Binding<String>, placeholder: String) -> some View {

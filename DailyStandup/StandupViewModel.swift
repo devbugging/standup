@@ -21,6 +21,7 @@ class StandupViewModel: ObservableObject {
 
     let recorder = AudioRecorder()
     private let transcriber = ElevenLabsService()
+    private let openai = OpenAIService()
     private let git = GitService()
     private let markdown = MarkdownManager()
 
@@ -66,16 +67,28 @@ class StandupViewModel: ObservableObject {
 
         Task {
             do {
-                let apiKey = AppState.shared.settings.elevenLabsAPIKey
+                let settings = AppState.shared.settings
+
+                statusMessage = "Transcribing audio..."
                 let transcript = try await transcriber.transcribe(
                     fileURL: recorder.recordingURL,
-                    apiKey: apiKey
+                    apiKey: settings.elevenLabsAPIKey
                 )
-                let (standup, todo) = parseTranscript(transcript)
+
+                statusMessage = "Structuring notes with AI..."
+                let (standup, todo) = try await openai.structureTranscript(
+                    rawText: transcript,
+                    projects: projects,
+                    userName: settings.userName,
+                    userRoles: settings.userRoles
+                )
+
                 standupText = standup
                 todoText = todo
+                statusMessage = ""
                 phase = .review
             } catch {
+                statusMessage = ""
                 phase = .error(error.localizedDescription)
             }
         }
@@ -140,104 +153,4 @@ class StandupViewModel: ObservableObject {
         prepare()
     }
 
-    // MARK: - Transcript Parsing
-
-    private func parseTranscript(_ text: String) -> (standup: String, todo: String) {
-        let lower = text.lowercased()
-        let todoKeywords = [
-            "to do list", "to-do list", "todo list", "to do items",
-            "todos:", "to dos:", "for todos", "for to do", "to-dos",
-            "to do:", "todo:", "things to do", "still need to"
-        ]
-
-        var standupPart = text
-        var todoPart = ""
-
-        for keyword in todoKeywords {
-            if let range = lower.range(of: keyword) {
-                standupPart = String(text[text.startIndex..<range.lowerBound])
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                todoPart = String(text[range.upperBound...])
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                break
-            }
-        }
-
-        let standupFormatted = formatStandupLines(standupPart)
-        let todoFormatted = formatTodoLines(todoPart)
-
-        return (standupFormatted, todoFormatted)
-    }
-
-    private func formatStandupLines(_ text: String) -> String {
-        let sentences = splitIntoItems(text)
-        return sentences.map { sentence in
-            if let project = matchProject(sentence) {
-                let cleaned = removeProjectMention(sentence, project: project)
-                return "- **\(project):** \(cleaned)"
-            }
-            return "- \(sentence)"
-        }.joined(separator: "\n")
-    }
-
-    private func formatTodoLines(_ text: String) -> String {
-        guard !text.isEmpty else { return "" }
-        let sentences = splitIntoItems(text)
-        return sentences.map { sentence in
-            if let project = matchProject(sentence) {
-                let cleaned = removeProjectMention(sentence, project: project)
-                return "\(project): \(cleaned)"
-            }
-            return sentence
-        }.joined(separator: "\n")
-    }
-
-    private func splitIntoItems(_ text: String) -> [String] {
-        return text.components(separatedBy: CharacterSet(charactersIn: ".\n"))
-            .map { $0.trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty }
-    }
-
-    private func matchProject(_ text: String) -> String? {
-        let lower = text.lowercased()
-        for project in projects {
-            let variations = [
-                project.lowercased(),
-                project.lowercased().replacingOccurrences(of: " ", with: ""),
-                project.lowercased().replacingOccurrences(of: "-", with: " ")
-            ]
-            for v in variations {
-                if lower.contains(v) { return project }
-            }
-        }
-        return nil
-    }
-
-    private func removeProjectMention(_ text: String, project: String) -> String {
-        var result = text
-
-        let separators = [":", " -", ",", " "]
-        for sep in separators {
-            let pattern = project + sep
-            if let range = result.range(of: pattern, options: .caseInsensitive) {
-                result = String(result[range.upperBound...]).trimmingCharacters(in: .whitespaces)
-                return capitalizeFirst(result)
-            }
-        }
-
-        // Remove just the project name if at start
-        if result.lowercased().hasPrefix(project.lowercased()) {
-            result = String(result.dropFirst(project.count)).trimmingCharacters(in: .whitespaces)
-            if let first = result.first, ":-,".contains(first) {
-                result = String(result.dropFirst()).trimmingCharacters(in: .whitespaces)
-            }
-        }
-
-        return capitalizeFirst(result)
-    }
-
-    private func capitalizeFirst(_ text: String) -> String {
-        guard let first = text.first else { return text }
-        return first.uppercased() + text.dropFirst()
-    }
 }
