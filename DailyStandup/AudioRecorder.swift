@@ -47,11 +47,11 @@ class AudioRecorder: NSObject, ObservableObject {
         isRecording = true
         elapsedTime = 0
 
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { [weak self] _ in
-            DispatchQueue.main.async {
-                self?.elapsedTime += 1
-            }
+        let t = Timer(timeInterval: 1, repeats: true) { [weak self] _ in
+            self?.elapsedTime += 1
         }
+        RunLoop.main.add(t, forMode: .common)
+        timer = t
     }
 
     func stopRecording() {
