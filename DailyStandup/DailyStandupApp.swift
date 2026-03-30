@@ -31,10 +31,16 @@ struct MenuBarContent: View {
 
         Divider()
 
+        Divider()
+
         Button("Settings...") {
             WindowManager.shared.showSettings()
         }
         .keyboardShortcut(",")
+
+        Button("Test Notification (5s)") {
+            NotificationManager.shared.sendTestNotification()
+        }
 
         Divider()
 
