@@ -1,5 +1,4 @@
 import SwiftUI
-import UserNotifications
 import ServiceManagement
 
 @main
@@ -38,10 +37,6 @@ struct MenuBarContent: View {
         }
         .keyboardShortcut(",")
 
-        Button("Test Notification (5s)") {
-            NotificationManager.shared.sendTestNotification()
-        }
-
         Divider()
 
         Button("Quit Daily Standup") {
@@ -53,21 +48,15 @@ struct MenuBarContent: View {
 
 // MARK: - App Delegate
 
-class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        UNUserNotificationCenter.current().delegate = self
-        NotificationManager.shared.requestPermission()
-
-        let settings = AppState.shared.settings
-        NotificationManager.shared.scheduleDailyReminder(
-            hour: settings.notificationHour,
-            minute: settings.notificationMinute
-        )
-
-        if settings.launchAtLogin {
+        if AppState.shared.settings.launchAtLogin {
             try? SMAppService.mainApp.register()
         }
+
+        // Start the standup timer
+        NotificationManager.shared.start()
 
         // Process daily todos in background on launch
         TodoCache.shared.refreshIfNeeded()
@@ -89,23 +78,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
 
     @objc private func handleWake() {
         TodoCache.shared.refreshIfNeeded()
-    }
-
-    func userNotificationCenter(
-        _ center: UNUserNotificationCenter,
-        didReceive response: UNNotificationResponse,
-        withCompletionHandler completionHandler: @escaping () -> Void
-    ) {
-        WindowManager.shared.showStandup()
-        completionHandler()
-    }
-
-    func userNotificationCenter(
-        _ center: UNUserNotificationCenter,
-        willPresent notification: UNNotification,
-        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
-    ) {
-        completionHandler([.banner, .sound])
     }
 }
 

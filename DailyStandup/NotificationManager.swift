@@ -1,76 +1,64 @@
 import Foundation
-import UserNotifications
+import AppKit
 
+/// Checks the clock every minute and opens the standup window at the configured time.
+/// Only triggers once per day.
 class NotificationManager {
     static let shared = NotificationManager()
-    static let standupActionID = "OPEN_STANDUP"
 
-    func requestPermission() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-            if let error = error {
-                print("Notification permission error: \(error)")
-            }
-            print("Notification permission granted: \(granted)")
+    private var timer: Timer?
+    private var lastTriggeredDate: String = ""
+
+    func start() {
+        stop()
+        let t = Timer(timeInterval: 30, repeats: true) { [weak self] _ in
+            self?.checkTime()
+        }
+        RunLoop.main.add(t, forMode: .common)
+        timer = t
+
+        // Also check immediately
+        checkTime()
+    }
+
+    func stop() {
+        timer?.invalidate()
+        timer = nil
+    }
+
+    /// Call after settings change to pick up new time.
+    func reschedule() {
+        let s = AppState.shared.settings
+        print("Standup window scheduled for \(String(format: "%02d:%02d", s.notificationHour, s.notificationMinute)) daily")
+    }
+
+    private func checkTime() {
+        let settings = AppState.shared.settings
+        guard !settings.userName.isEmpty else { return }
+
+        let now = Date()
+        let cal = Calendar.current
+        let hour = cal.component(.hour, from: now)
+        let minute = cal.component(.minute, from: now)
+        let todayString = dateString(now)
+
+        guard hour == settings.notificationHour,
+              minute == settings.notificationMinute,
+              lastTriggeredDate != todayString else {
+            return
+        }
+
+        lastTriggeredDate = todayString
+
+        DispatchQueue.main.async {
+            WindowManager.shared.showStandup()
+            NSSound.beep()
         }
     }
 
-    func scheduleDailyReminder(hour: Int, minute: Int) {
-        let center = UNUserNotificationCenter.current()
-        center.removePendingNotificationRequests(withIdentifiers: ["daily-standup"])
-
-        let content = UNMutableNotificationContent()
-        content.title = "Daily Standup"
-        content.body = "Time to record your daily standup update!"
-        content.sound = .default
-        content.categoryIdentifier = "STANDUP"
-
-        var dateComponents = DateComponents()
-        dateComponents.hour = hour
-        dateComponents.minute = minute
-
-        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
-        let request = UNNotificationRequest(identifier: "daily-standup", content: content, trigger: trigger)
-
-        center.add(request) { error in
-            if let error = error {
-                print("Failed to schedule notification: \(error)")
-            } else {
-                print("Standup reminder scheduled for \(String(format: "%02d:%02d", hour, minute)) daily")
-            }
-        }
-
-        let openAction = UNNotificationAction(
-            identifier: Self.standupActionID,
-            title: "Open Standup",
-            options: [.foreground]
-        )
-        let category = UNNotificationCategory(
-            identifier: "STANDUP",
-            actions: [openAction],
-            intentIdentifiers: []
-        )
-        center.setNotificationCategories([category])
-    }
-
-    /// Fires a test notification in 5 seconds to verify permissions work.
-    func sendTestNotification() {
-        let center = UNUserNotificationCenter.current()
-
-        let content = UNMutableNotificationContent()
-        content.title = "Daily Standup"
-        content.body = "Test notification — if you see this, notifications are working!"
-        content.sound = .default
-        content.categoryIdentifier = "STANDUP"
-
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
-        let request = UNNotificationRequest(identifier: "test-standup", content: content, trigger: trigger)
-
-        center.add(request) { error in
-            if let error = error {
-                print("Test notification failed: \(error)")
-            } else {
-                print("Test notification scheduled — should appear in 5 seconds")
-            }
-        }
+    private func dateString(_ date: Date) -> String {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "yyyy-MM-dd"
+        return fmt.string(from: date)
     }
 }

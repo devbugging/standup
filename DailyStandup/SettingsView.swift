@@ -188,10 +188,7 @@ struct SettingsView: View {
 
                         Button(action: {
                             appState.save()
-                            NotificationManager.shared.scheduleDailyReminder(
-                                hour: appState.settings.notificationHour,
-                                minute: appState.settings.notificationMinute
-                            )
+                            NotificationManager.shared.reschedule()
                             withAnimation(.easeOut(duration: 0.2)) {
                                 showingSaved = true
                             }
