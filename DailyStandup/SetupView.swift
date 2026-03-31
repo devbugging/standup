@@ -40,7 +40,7 @@ struct SetupView: View {
                 navigationBar
             }
         }
-        .frame(minWidth: 500, minHeight: 580)
+        .frame(minWidth: 500, minHeight: 700)
         .onAppear {
             // Pre-populate from existing settings if re-opening setup
             projectNames = appState.settings.projectNames
