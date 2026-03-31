@@ -1,119 +1,74 @@
 # Daily Standup
 
-A lightweight macOS menu bar app that records your daily standup via voice, transcribes it with AI, and pushes structured notes to a shared git repo.
+A macOS menu bar app that records your daily standup via voice, transcribes it with AI, and commits structured notes to a git repository. The repository serves as a living record of your work that can be used as context for other AI tools.
 
-## What it does
+## How it works
 
-1. **Daily reminder** -- pops a notification at your configured time (default 4 PM)
-2. **Voice recording** -- click Record, describe what you did and what's next
-3. **AI processing** -- transcribes audio (OpenAI Whisper), then structures your notes into clean bullet points with correct project names (GPT-4o-mini)
-4. **Git push** -- writes to `standup.md` and `todo.md`, commits, and pushes
-5. **Daily to-do viewer** -- shows your pending tasks, organized and prioritized by AI, cached so it opens instantly
+1. **Record** -- click the mic button and describe what you worked on, any blockers, and what's next
+2. **AI processes** -- transcribes audio (OpenAI Whisper), then structures your notes into clean bullet points tagged by project (GPT-4o-mini)
+3. **Review & edit** -- tweak the output before committing
+4. **Commit** -- writes per-project standup, todo, and git activity files, then commits to the repo
+5. **Daily reminder** -- opens the standup window at your configured time
 
-## Requirements
+## The repository as AI context
 
-- macOS 14 (Sonoma) or later
-- An [OpenAI API key](https://platform.openai.com/api-keys) (used for both transcription and note structuring)
-- A git repo with a specific folder structure (see below)
+The standup repository is designed to be consumed by other AI tools. Each project folder contains structured markdown files that give any AI a clear picture of what you're working on:
+
+```
+standup-repo/
+  projects/
+    greg-standup.md          <-- general standup notes
+    greg-todo.md             <-- general todos
+    Regolingo/
+      project.md             <-- AI-generated project description
+      metadata.json          <-- repo paths, website
+      greg-standup.md        <-- standup notes for this project
+      greg-todo.md           <-- todos for this project
+      greg-git.md            <-- AI-summarized git commits
+    AnotherProject/
+      ...
+```
+
+Point other AI tools (Claude, Cursor, etc.) at this repository to give them context about your projects, recent work, and priorities.
 
 ## Setup
 
-### 1. Open the app
+On first launch a setup wizard walks you through three steps:
 
-```bash
-open build/DailyStandup.app
-```
+### Step 1: Profile & API Key
 
-Or build from source in Xcode (`DailyStandup.xcodeproj`).
+Enter your name, roles, and OpenAI API key. A button links directly to the OpenAI dashboard to create a key.
 
-A microphone icon appears in your menu bar. On first launch, Settings opens automatically.
+### Step 2: Repository & Projects
 
-### 2. Configure settings
+Choose a folder for your standup repository. The app creates a git repo with the right structure, or detects an existing one.
 
-| Setting | What to enter |
-|---|---|
-| **Name** | Your name (e.g. `Greg`). Used to group standup entries by person. |
-| **Roles** | What you do (e.g. `Development, Marketing`). Shown next to your name in notes. |
-| **OpenAI API Key** | Your `sk-...` key. Powers both voice transcription and note formatting. |
-| **Microphone** | Pick your input device. If recording is silent, try a different one. |
-| **Daily Reminder** | Hour and minute for the daily notification (24h format). |
-| **Repository Path** | Path to your projects repo on disk (see below). |
-| **Launch at Login** | Start automatically when your Mac boots. |
+Add your projects with:
+- **Name** -- becomes a folder in the repo
+- **Description** -- short summary
+- **Repositories** -- one or more local git repo paths (optional). The app fetches your daily commits from these and writes an AI summary to `git.md`
+- **Website** -- fetched and summarized by AI into `project.md`
+- **Fetch git activity** -- toggle per project
 
-Click **Save & Update** when done.
+### Step 3: Preferences
 
-### 3. Set up your projects repo
-
-The app expects a git repo with this structure:
-
-```
-your-repo/
-  projects/
-    standup.md      <-- daily standup notes (auto-updated)
-    todo.md         <-- to-do list (auto-updated)
-    ProjectAlpha/   <-- each folder = a project name
-    ProjectBeta/
-    SomeClient/
-    ...
-```
-
-**The folder names matter.** Each subfolder inside `projects/` is treated as a project name. When you mention a project during your standup recording, the AI matches your words to these exact folder names.
-
-You can put anything inside each project folder (docs, briefs, notes) -- the app only reads the folder names.
-
-Point the **Repository Path** setting to the root of this repo (e.g. `/Users/you/Dev/projects`).
+Set your daily reminder time, choose a microphone, and configure launch at login.
 
 ## Usage
 
 ### Recording a standup
 
-1. Click the menu bar icon > **Start Standup** (or use the daily notification)
-2. Read the instructions, then click the red **Record** button
-3. Speak naturally:
-   - **What you worked on today** -- mention project names for auto-tagging
-   - **Any blockers** you're facing
-   - Say **"todos"** then list what still needs to be done
-4. Click **Complete** when finished
-5. Review the AI-structured notes -- edit if needed
-6. Click **Confirm & Push** to commit and push to the repo
+1. Click the menu bar mic icon > **Start Standup**
+2. Click **Record** and speak naturally -- mention project names for auto-tagging
+3. Click **Stop** when done
+4. Review the AI-structured notes, edit if needed
+5. Click **Confirm & Push**
+
+The app writes to per-project files, fetches git activity from your project repos, and commits everything.
 
 ### Viewing your daily to-do
 
-Click the menu bar icon > **Show Daily To-Do**
-
-This shows all your pending (unchecked) tasks from `todo.md`, organized by project and priority. The list is processed by AI once per day (on app launch or wake from sleep) and cached, so it opens instantly.
-
-Click the refresh button to re-process if you've made manual changes.
-
-### Multi-user support
-
-Multiple people can use this app on the same repo. Each person's entries are grouped under their name:
-
-**standup.md:**
-```markdown
-## 2026-03-27
-
-### Greg (Development, Marketing)
-
-- **RingAssist:** Launched new Meta ad campaigns
-- **Darwin Research:** Finished build
-
-### Alice (Design)
-
-- **RingAssist:** Redesigned onboarding flow
-```
-
-**todo.md:**
-```markdown
-## 2026-03-27
-
-### Greg (Development, Marketing)
-
-- [ ] RingAssist: Start email outbound setup
-- [ ] Darwin Research: Continue email campaign
-```
-
-The app pulls before recording and before pushing to minimize conflicts.
+Click **Show Daily To-Do** from the menu bar. Shows all pending tasks across projects, organized and prioritized by AI. Cached so it opens instantly; refreshes once per day.
 
 ## Building from source
 
@@ -122,17 +77,7 @@ Requires Xcode 15+ and [xcodegen](https://github.com/yonaskolb/XcodeGen).
 ```bash
 brew install xcodegen
 xcodegen generate
-open DailyStandup.xcodeproj
+xcodebuild -scheme DailyStandup -configuration Debug build
 ```
 
-Or build from the command line:
-
-```bash
-xcrun swiftc -o build/DailyStandup.app/Contents/MacOS/DailyStandup \
-  -sdk $(xcrun --show-sdk-path -sdk macosx) \
-  -target arm64-apple-macos14.0 \
-  -framework SwiftUI -framework AVFoundation \
-  -framework UserNotifications -framework ServiceManagement \
-  -framework AppKit -framework CoreAudio \
-  DailyStandup/*.swift
-```
+Or open `DailyStandup.xcodeproj` in Xcode and build from there.

@@ -28,7 +28,10 @@ struct MenuBarContent: View {
         }
         .keyboardShortcut("t")
 
-        Divider()
+        Button("Planning (Beta)") {
+            WindowManager.shared.showPlanning()
+        }
+        .keyboardShortcut("p")
 
         Divider()
 
@@ -88,6 +91,7 @@ class WindowManager {
     private var standupWindow: NSWindow?
     private var setupWindow: NSWindow?
     private var todoWindow: NSWindow?
+    private var planningWindow: NSWindow?
 
     func showStandup() {
         let view = StandupView()
@@ -157,6 +161,29 @@ class WindowManager {
         todoWindow?.contentView = hostingView
         todoWindow?.center()
         todoWindow?.makeKeyAndOrderFront(nil)
+        NSApp.activate(ignoringOtherApps: true)
+    }
+
+    func showPlanning() {
+        let view = PlanningView()
+        let hostingView = NSHostingView(rootView: view)
+
+        if planningWindow == nil {
+            planningWindow = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 460, height: 340),
+                styleMask: [.titled, .closable, .fullSizeContentView],
+                backing: .buffered,
+                defer: false
+            )
+            planningWindow?.titlebarAppearsTransparent = true
+            planningWindow?.titleVisibility = .hidden
+            planningWindow?.isReleasedWhenClosed = false
+            planningWindow?.backgroundColor = .clear
+            planningWindow?.isMovableByWindowBackground = true
+        }
+        planningWindow?.contentView = hostingView
+        planningWindow?.center()
+        planningWindow?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
 }
