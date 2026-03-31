@@ -14,8 +14,9 @@ struct SetupView: View {
     // New project form fields
     @State private var newName = ""
     @State private var newDescription = ""
-    @State private var newRepoURL = ""
+    @State private var newRepoPaths: [String] = []
     @State private var newWebsiteURL = ""
+    @State private var newFetchGitActivity = true
     @State private var editingIndex: Int?
 
     enum RepoStatus {
@@ -230,47 +231,92 @@ struct SetupView: View {
 
                     settingsField("Description", text: $newDescription, placeholder: "Short description (optional)")
 
-                    // Repository local path
+                    // Repositories (multiple)
                     VStack(alignment: .leading, spacing: 6) {
-                        Text("Repository")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundStyle(.secondary)
-                        HStack(spacing: 8) {
-                            Text(newRepoURL.isEmpty ? "No folder selected (optional)" : newRepoURL)
-                                .font(.system(size: 12, design: .monospaced))
-                                .foregroundStyle(newRepoURL.isEmpty ? .tertiary : .primary)
-                                .lineLimit(1)
-                                .truncationMode(.middle)
-                                .frame(maxWidth: .infinity, alignment: .leading)
+                        HStack {
+                            Text("Repositories")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundStyle(.secondary)
+                            Spacer()
+                            Button(action: {
+                                let panel = NSOpenPanel()
+                                panel.canChooseDirectories = true
+                                panel.canChooseFiles = false
+                                panel.allowsMultipleSelection = true
+                                panel.prompt = "Add"
+                                if panel.runModal() == .OK {
+                                    for url in panel.urls {
+                                        let path = url.path
+                                        if !newRepoPaths.contains(path) {
+                                            newRepoPaths.append(path)
+                                        }
+                                    }
+                                }
+                            }) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "plus")
+                                        .font(.system(size: 10, weight: .semibold))
+                                    Text("Add Repo")
+                                        .font(.system(size: 11, weight: .medium))
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            .foregroundStyle(Color.accentColor)
+                        }
+
+                        if newRepoPaths.isEmpty {
+                            Text("No repositories added (optional)")
+                                .font(.system(size: 11))
+                                .foregroundStyle(.tertiary)
                                 .padding(10)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                                 .background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: 8)
                                         .strokeBorder(Color.primary.opacity(0.06), lineWidth: 1)
                                 )
-
-                            Button(action: {
-                                let panel = NSOpenPanel()
-                                panel.canChooseDirectories = true
-                                panel.canChooseFiles = false
-                                panel.allowsMultipleSelection = false
-                                panel.prompt = "Select"
-                                if panel.runModal() == .OK, let url = panel.url {
-                                    newRepoURL = url.path
+                        } else {
+                            VStack(spacing: 4) {
+                                ForEach(newRepoPaths, id: \.self) { path in
+                                    HStack(spacing: 6) {
+                                        Image(systemName: "arrow.triangle.branch")
+                                            .font(.system(size: 9))
+                                            .foregroundStyle(.secondary)
+                                        Text(path)
+                                            .font(.system(size: 11, design: .monospaced))
+                                            .lineLimit(1)
+                                            .truncationMode(.middle)
+                                        Spacer()
+                                        Button(action: {
+                                            newRepoPaths.removeAll { $0 == path }
+                                        }) {
+                                            Image(systemName: "xmark")
+                                                .font(.system(size: 8, weight: .bold))
+                                                .foregroundStyle(.secondary)
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                    .padding(.horizontal, 10)
+                                    .padding(.vertical, 7)
+                                    .background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 6))
                                 }
-                            }) {
-                                HStack(spacing: 5) {
-                                    Image(systemName: "folder.badge.plus")
-                                        .font(.system(size: 12))
-                                    Text("Choose")
-                                        .font(.system(size: 12, weight: .medium))
-                                }
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 8)
-                                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
                             }
-                            .buttonStyle(.plain)
                         }
+                    }
+
+                    // Fetch git activity toggle
+                    if !newRepoPaths.isEmpty {
+                        Toggle(isOn: $newFetchGitActivity) {
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text("Fetch git activity")
+                                    .font(.system(size: 12, weight: .medium))
+                                Text("Summarize daily commits after each standup")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(.tertiary)
+                            }
+                        }
+                        .toggleStyle(.switch)
+                        .controlSize(.small)
                     }
 
                     settingsField("Website", text: $newWebsiteURL, placeholder: "https://example.com (optional)")
@@ -326,11 +372,20 @@ struct SetupView: View {
                 }
 
                 HStack(spacing: 10) {
-                    if !project.repoURL.isEmpty {
+                    if !project.repoPaths.isEmpty {
                         HStack(spacing: 3) {
                             Image(systemName: "arrow.triangle.branch")
                                 .font(.system(size: 9))
-                            Text("Repo")
+                            Text(project.repoPaths.count == 1 ? "1 repo" : "\(project.repoPaths.count) repos")
+                                .font(.system(size: 10))
+                        }
+                        .foregroundStyle(.tertiary)
+                    }
+                    if project.fetchGitActivity && !project.repoPaths.isEmpty {
+                        HStack(spacing: 3) {
+                            Image(systemName: "clock.arrow.circlepath")
+                                .font(.system(size: 9))
+                            Text("Git activity")
                                 .font(.system(size: 10))
                         }
                         .foregroundStyle(.tertiary)
@@ -623,8 +678,9 @@ struct SetupView: View {
         let info = ProjectInfo(
             name: name,
             description: newDescription.trimmingCharacters(in: .whitespaces),
-            repoURL: newRepoURL.trimmingCharacters(in: .whitespaces),
-            websiteURL: newWebsiteURL.trimmingCharacters(in: .whitespaces)
+            repoPaths: newRepoPaths,
+            websiteURL: newWebsiteURL.trimmingCharacters(in: .whitespaces),
+            fetchGitActivity: newFetchGitActivity
         )
 
         if let idx = editingIndex {
@@ -641,16 +697,18 @@ struct SetupView: View {
         let project = projectInfos[index]
         newName = project.name
         newDescription = project.description
-        newRepoURL = project.repoURL
+        newRepoPaths = project.repoPaths
         newWebsiteURL = project.websiteURL
+        newFetchGitActivity = project.fetchGitActivity
         editingIndex = index
     }
 
     private func clearProjectForm() {
         newName = ""
         newDescription = ""
-        newRepoURL = ""
+        newRepoPaths = []
         newWebsiteURL = ""
+        newFetchGitActivity = true
         editingIndex = nil
     }
 

@@ -5,8 +5,9 @@ struct ProjectInfo: Codable, Equatable, Identifiable, Hashable {
     var id: String { name }
     var name: String
     var description: String = ""
-    var repoURL: String = ""
+    var repoPaths: [String] = []
     var websiteURL: String = ""
+    var fetchGitActivity: Bool = true
 }
 
 struct UserSettings: Codable, Equatable {

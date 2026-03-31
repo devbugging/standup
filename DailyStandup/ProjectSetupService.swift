@@ -24,13 +24,14 @@ class ProjectSetupService {
     // MARK: - metadata.json
 
     private static func writeMetadata(project: ProjectInfo, projectDir: String) throws {
-        var metadata: [String: String] = [:]
-        if !project.repoURL.isEmpty {
-            metadata["repo"] = project.repoURL
+        var metadata: [String: Any] = [:]
+        if !project.repoPaths.isEmpty {
+            metadata["repos"] = project.repoPaths
         }
         if !project.websiteURL.isEmpty {
             metadata["website"] = project.websiteURL
         }
+        metadata["fetchGitActivity"] = project.fetchGitActivity
 
         let path = "\(projectDir)/metadata.json"
         let data = try JSONSerialization.data(
@@ -58,13 +59,20 @@ class ProjectSetupService {
             sections.append("")
         }
 
-        if !project.repoURL.isEmpty {
-            sections.append("**Repository:** \(project.repoURL)")
+        if !project.repoPaths.isEmpty {
+            if project.repoPaths.count == 1 {
+                sections.append("**Repository:** `\(project.repoPaths[0])`")
+            } else {
+                sections.append("**Repositories:**")
+                for repo in project.repoPaths {
+                    sections.append("- `\(repo)`")
+                }
+            }
         }
         if !project.websiteURL.isEmpty {
             sections.append("**Website:** \(project.websiteURL)")
         }
-        if !project.repoURL.isEmpty || !project.websiteURL.isEmpty {
+        if !project.repoPaths.isEmpty || !project.websiteURL.isEmpty {
             sections.append("")
         }
 

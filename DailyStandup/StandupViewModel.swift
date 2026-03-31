@@ -173,40 +173,42 @@ class StandupViewModel: ObservableObject {
 
     // MARK: - Git activity processing
 
-    /// For each project that has a local repo path, fetch today's commits and summarize with OpenAI.
+    /// For each project that has local repo paths and git activity enabled, fetch today's commits and summarize.
     private func processGitActivity(settings: UserSettings, date: String) async -> [String] {
         var gitFiles: [String] = []
         let projectInfos = settings.projects
 
         for info in projectInfos {
-            guard !info.repoURL.isEmpty else { continue }
-            let repoDir = info.repoURL
+            guard info.fetchGitActivity, !info.repoPaths.isEmpty else { continue }
 
-            // Verify the directory exists and is a git repo
+            var allCommitMessages: [String] = []
             let fm = FileManager.default
-            let gitDir = (repoDir as NSString).appendingPathComponent(".git")
-            var isDir: ObjCBool = false
-            guard fm.fileExists(atPath: gitDir, isDirectory: &isDir), isDir.boolValue else { continue }
+
+            // Collect commits from all repos for this project
+            for repoDir in info.repoPaths {
+                let gitDir = (repoDir as NSString).appendingPathComponent(".git")
+                var isDir: ObjCBool = false
+                guard fm.fileExists(atPath: gitDir, isDirectory: &isDir), isDir.boolValue else { continue }
+
+                if let logOutput = try? await git.run(
+                    ["log", "--since=\(date) 00:00", "--until=\(date) 23:59",
+                     "--author=\(settings.userName)", "--pretty=format:%s", "--no-merges"],
+                    in: repoDir
+                ) {
+                    let messages = logOutput
+                        .trimmingCharacters(in: .whitespacesAndNewlines)
+                        .components(separatedBy: "\n")
+                        .filter { !$0.isEmpty }
+                    allCommitMessages.append(contentsOf: messages)
+                }
+            }
+
+            guard !allCommitMessages.isEmpty else { continue }
 
             do {
-                // Get today's commits by this user
-                let authorName = settings.userName
-                let logOutput = try await git.run(
-                    ["log", "--since=\(date) 00:00", "--until=\(date) 23:59",
-                     "--author=\(authorName)", "--pretty=format:%s", "--no-merges"],
-                    in: repoDir
-                )
-
-                let commitMessages = logOutput
-                    .trimmingCharacters(in: .whitespacesAndNewlines)
-                    .components(separatedBy: "\n")
-                    .filter { !$0.isEmpty }
-
-                guard !commitMessages.isEmpty else { continue }
-
                 // Summarize commits with OpenAI
                 let bullets = try await summarizeCommits(
-                    commitMessages: commitMessages,
+                    commitMessages: allCommitMessages,
                     projectName: info.name,
                     apiKey: settings.openAIAPIKey
                 )
