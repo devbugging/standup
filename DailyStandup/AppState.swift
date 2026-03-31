@@ -1,6 +1,14 @@
 import Foundation
 import Combine
 
+struct ProjectInfo: Codable, Equatable, Identifiable, Hashable {
+    var id: String { name }
+    var name: String
+    var description: String = ""
+    var repoURL: String = ""
+    var websiteURL: String = ""
+}
+
 struct UserSettings: Codable, Equatable {
     var userName: String = ""
     var userRoles: String = ""
@@ -9,7 +17,7 @@ struct UserSettings: Codable, Equatable {
     var notificationHour: Int = 16
     var notificationMinute: Int = 0
     var repoPath: String = ""
-    var projectNames: [String] = []
+    var projects: [ProjectInfo] = []
     var launchAtLogin: Bool = true
     var setupCompleted: Bool = false
 }

@@ -5,11 +5,18 @@ struct SetupView: View {
     @ObservedObject private var appState = AppState.shared
     @StateObject private var audioRecorder = AudioRecorder()
     @State private var currentStep = 0
-    @State private var newProjectName = ""
-    @State private var projectNames: [String] = []
+    @State private var projectInfos: [ProjectInfo] = []
     @State private var repoStatus: RepoStatus = .none
     @State private var setupError: String?
     @State private var isSettingUp = false
+    @State private var setupProgress: String?
+
+    // New project form fields
+    @State private var newName = ""
+    @State private var newDescription = ""
+    @State private var newRepoURL = ""
+    @State private var newWebsiteURL = ""
+    @State private var editingIndex: Int?
 
     enum RepoStatus {
         case none
@@ -25,10 +32,8 @@ struct SetupView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Header with step indicator
                 setupHeader
 
-                // Step content
                 ScrollView {
                     VStack(spacing: 20) {
                         stepContent
@@ -36,14 +41,12 @@ struct SetupView: View {
                     .padding(28)
                 }
 
-                // Navigation buttons
                 navigationBar
             }
         }
-        .frame(minWidth: 500, minHeight: 700)
+        .frame(minWidth: 520, minHeight: 700)
         .onAppear {
-            // Pre-populate from existing settings if re-opening setup
-            projectNames = appState.settings.projectNames
+            projectInfos = appState.settings.projects
             if !appState.settings.repoPath.isEmpty {
                 checkRepoStatus(appState.settings.repoPath)
             }
@@ -68,7 +71,6 @@ struct SetupView: View {
                     .foregroundStyle(.tertiary)
             }
 
-            // Progress bar
             GeometryReader { geo in
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 2)
@@ -168,7 +170,6 @@ struct SetupView: View {
 
     private var repositoryStep: some View {
         VStack(spacing: 20) {
-            // Explanation card
             GlassCard {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(spacing: 8) {
@@ -226,62 +227,113 @@ struct SetupView: View {
                         .buttonStyle(.plain)
                     }
 
-                    // Repo status indicator
                     if !appState.settings.repoPath.isEmpty {
                         repoStatusBadge
                     }
                 }
             }
 
-            // Projects
-            settingsCard(title: "Projects", icon: "rectangle.stack") {
-                VStack(alignment: .leading, spacing: 12) {
-                    Text("Add the projects you work on. Each becomes a folder in the repository.")
-                        .font(.system(size: 11))
-                        .foregroundStyle(.secondary)
+            // Add project form
+            settingsCard(title: editingIndex != nil ? "Edit Project" : "Add Project", icon: "plus.rectangle.on.folder") {
+                VStack(alignment: .leading, spacing: 10) {
+                    settingsField("Name", text: $newName, placeholder: "e.g. Regolingo")
 
-                    HStack(spacing: 8) {
-                        TextField("Project name", text: $newProjectName)
-                            .textFieldStyle(.plain)
-                            .font(.system(size: 12.5))
-                            .padding(10)
-                            .background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .strokeBorder(Color.primary.opacity(0.06), lineWidth: 1)
-                            )
-                            .onSubmit { addProject() }
+                    settingsField("Description", text: $newDescription, placeholder: "Short description (optional)")
 
-                        Button(action: addProject) {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.system(size: 18))
-                                .foregroundStyle(Color.accentColor)
-                        }
-                        .buttonStyle(.plain)
-                        .disabled(newProjectName.trimmingCharacters(in: .whitespaces).isEmpty)
-                    }
+                    settingsField("Repository", text: $newRepoURL, placeholder: "https://github.com/org/repo (optional)")
 
-                    if !projectNames.isEmpty {
-                        FlowLayoutView(items: projectNames) { name in
-                            HStack(spacing: 4) {
-                                Text(name)
-                                    .font(.system(size: 11, weight: .medium))
-                                Button(action: { removeProject(name) }) {
-                                    Image(systemName: "xmark")
-                                        .font(.system(size: 8, weight: .bold))
-                                }
-                                .buttonStyle(.plain)
+                    settingsField("Website", text: $newWebsiteURL, placeholder: "https://example.com (optional)")
+
+                    HStack {
+                        Spacer()
+                        if editingIndex != nil {
+                            Button("Cancel") {
+                                clearProjectForm()
                             }
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .background(Color.accentColor.opacity(0.08))
-                            .foregroundStyle(Color.accentColor)
-                            .clipShape(Capsule())
+                            .buttonStyle(.bordered)
+                            .controlSize(.small)
+                        }
+                        Button(action: addOrUpdateProject) {
+                            HStack(spacing: 4) {
+                                Image(systemName: editingIndex != nil ? "checkmark" : "plus")
+                                    .font(.system(size: 10, weight: .bold))
+                                Text(editingIndex != nil ? "Update" : "Add Project")
+                                    .font(.system(size: 12, weight: .medium))
+                            }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.small)
+                        .disabled(newName.trimmingCharacters(in: .whitespaces).isEmpty)
+                    }
+                }
+            }
+
+            // Project list
+            if !projectInfos.isEmpty {
+                settingsCard(title: "Projects (\(projectInfos.count))", icon: "rectangle.stack") {
+                    VStack(spacing: 8) {
+                        ForEach(Array(projectInfos.enumerated()), id: \.element.name) { index, project in
+                            projectRow(project, index: index)
                         }
                     }
                 }
             }
         }
+    }
+
+    private func projectRow(_ project: ProjectInfo, index: Int) -> some View {
+        HStack(alignment: .top, spacing: 10) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(project.name)
+                    .font(.system(size: 12.5, weight: .semibold))
+
+                if !project.description.isEmpty {
+                    Text(project.description)
+                        .font(.system(size: 11))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                }
+
+                HStack(spacing: 10) {
+                    if !project.repoURL.isEmpty {
+                        HStack(spacing: 3) {
+                            Image(systemName: "arrow.triangle.branch")
+                                .font(.system(size: 9))
+                            Text("Repo")
+                                .font(.system(size: 10))
+                        }
+                        .foregroundStyle(.tertiary)
+                    }
+                    if !project.websiteURL.isEmpty {
+                        HStack(spacing: 3) {
+                            Image(systemName: "globe")
+                                .font(.system(size: 9))
+                            Text("Web")
+                                .font(.system(size: 10))
+                        }
+                        .foregroundStyle(.tertiary)
+                    }
+                }
+            }
+
+            Spacer()
+
+            Button(action: { startEditingProject(index) }) {
+                Image(systemName: "pencil")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(.secondary)
+            }
+            .buttonStyle(.plain)
+
+            Button(action: { projectInfos.remove(at: index) }) {
+                Image(systemName: "trash")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundStyle(.red.opacity(0.7))
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(10)
+        .background(Color.primary.opacity(0.03), in: RoundedRectangle(cornerRadius: 8))
     }
 
     @ViewBuilder
@@ -402,7 +454,6 @@ struct SetupView: View {
                 }
             }
 
-            // Error display
             if let error = setupError {
                 HStack(spacing: 8) {
                     Image(systemName: "exclamationmark.triangle.fill")
@@ -443,6 +494,17 @@ struct SetupView: View {
             }
 
             Spacer()
+
+            if let progress = setupProgress {
+                HStack(spacing: 6) {
+                    ProgressView()
+                        .controlSize(.small)
+                        .scaleEffect(0.7)
+                    Text(progress)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(.secondary)
+                }
+            }
 
             if currentStep < totalSteps - 1 {
                 Button(action: {
@@ -512,10 +574,9 @@ struct SetupView: View {
         }
         if GitService().isValidRepo(at: path) {
             repoStatus = .existingValid
-            // Load existing projects
-            let existing = MarkdownManager().scanProjects(repoPath: path)
-            if !existing.isEmpty && projectNames.isEmpty {
-                projectNames = existing
+            if projectInfos.isEmpty {
+                let existing = MarkdownManager().scanProjects(repoPath: path)
+                projectInfos = existing.map { ProjectInfo(name: $0) }
             }
         } else {
             repoStatus = .willCreate
@@ -524,15 +585,42 @@ struct SetupView: View {
 
     // MARK: - Project Management
 
-    private func addProject() {
-        let name = newProjectName.trimmingCharacters(in: .whitespaces)
-        guard !name.isEmpty, !projectNames.contains(name) else { return }
-        projectNames.append(name)
-        newProjectName = ""
+    private func addOrUpdateProject() {
+        let name = newName.trimmingCharacters(in: .whitespaces)
+        guard !name.isEmpty else { return }
+
+        let info = ProjectInfo(
+            name: name,
+            description: newDescription.trimmingCharacters(in: .whitespaces),
+            repoURL: newRepoURL.trimmingCharacters(in: .whitespaces),
+            websiteURL: newWebsiteURL.trimmingCharacters(in: .whitespaces)
+        )
+
+        if let idx = editingIndex {
+            projectInfos[idx] = info
+        } else {
+            guard !projectInfos.contains(where: { $0.name == name }) else { return }
+            projectInfos.append(info)
+        }
+
+        clearProjectForm()
     }
 
-    private func removeProject(_ name: String) {
-        projectNames.removeAll { $0 == name }
+    private func startEditingProject(_ index: Int) {
+        let project = projectInfos[index]
+        newName = project.name
+        newDescription = project.description
+        newRepoURL = project.repoURL
+        newWebsiteURL = project.websiteURL
+        editingIndex = index
+    }
+
+    private func clearProjectForm() {
+        newName = ""
+        newDescription = ""
+        newRepoURL = ""
+        newWebsiteURL = ""
+        editingIndex = nil
     }
 
     // MARK: - Complete Setup
@@ -540,19 +628,41 @@ struct SetupView: View {
     private func completeSetup() {
         isSettingUp = true
         setupError = nil
-        appState.settings.projectNames = projectNames
+        appState.settings.projects = projectInfos
 
         Task {
             do {
                 let repoPath = appState.settings.repoPath
                 let git = GitService()
+                let projectNames = projectInfos.map { $0.name }
 
                 if git.isValidRepo(at: repoPath) {
-                    // Existing repo — just add any new project directories
                     try git.addProjects(projectNames, repoPath: repoPath)
                 } else {
-                    // Create new repo
+                    await MainActor.run { setupProgress = "Creating repository..." }
                     try await git.initializeRepo(at: repoPath, projectNames: projectNames)
+                }
+
+                // Generate metadata.json and project.md for each project
+                let apiKey = appState.settings.openAIAPIKey
+                for (i, project) in projectInfos.enumerated() {
+                    await MainActor.run {
+                        setupProgress = "Setting up \(project.name) (\(i + 1)/\(projectInfos.count))..."
+                    }
+                    try await ProjectSetupService.generateProjectFiles(
+                        project: project,
+                        repoPath: repoPath,
+                        apiKey: apiKey
+                    )
+                }
+
+                // Commit the generated project files
+                await MainActor.run { setupProgress = "Committing project files..." }
+                _ = try await git.run(["add", "."], in: repoPath)
+                // Only commit if there are staged changes
+                let status = try await git.run(["status", "--porcelain"], in: repoPath)
+                if !status.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    _ = try await git.run(["commit", "-m", "Add project metadata and descriptions"], in: repoPath)
                 }
 
                 await MainActor.run {
@@ -560,12 +670,14 @@ struct SetupView: View {
                     appState.save()
                     NotificationManager.shared.reschedule()
                     isSettingUp = false
+                    setupProgress = nil
                     NSApp.keyWindow?.close()
                 }
             } catch {
                 await MainActor.run {
                     setupError = error.localizedDescription
                     isSettingUp = false
+                    setupProgress = nil
                 }
             }
         }
