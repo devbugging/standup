@@ -103,6 +103,14 @@ class GitService {
     }
 
     func pull(repoPath: String) async throws {
+        // Skip pull if there's no remote configured
+        let remotes = (try? await run(["remote"], in: repoPath)) ?? ""
+        guard !remotes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+
+        // Skip pull if the current branch has no tracking branch
+        let tracking = try? await run(["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"], in: repoPath)
+        guard let t = tracking, !t.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+
         _ = try await run(["pull", "--rebase"], in: repoPath)
     }
 
@@ -111,6 +119,13 @@ class GitService {
             _ = try await run(["add", file], in: repoPath)
         }
         _ = try await run(["commit", "-m", message], in: repoPath)
+
+        // Only push if there's a remote and tracking branch
+        let remotes = (try? await run(["remote"], in: repoPath)) ?? ""
+        guard !remotes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+        let tracking = try? await run(["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"], in: repoPath)
+        guard let t = tracking, !t.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
+
         _ = try await run(["push"], in: repoPath)
     }
 }
