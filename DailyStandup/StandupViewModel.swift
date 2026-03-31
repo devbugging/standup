@@ -124,7 +124,6 @@ class StandupViewModel: ObservableObject {
                         repoPath: settings.repoPath,
                         date: dateString,
                         userName: settings.userName,
-                        roles: settings.userRoles,
                         itemsByProject: standupByProject
                     )
                     filesToCommit.append(contentsOf: standupFiles)
@@ -138,11 +137,18 @@ class StandupViewModel: ObservableObject {
                         repoPath: settings.repoPath,
                         date: dateString,
                         userName: settings.userName,
-                        roles: settings.userRoles,
                         itemsByProject: todoByProject
                     )
                     filesToCommit.append(contentsOf: todoFiles)
                 }
+
+                // Fetch git commits for projects with repo locations and write git.md
+                statusMessage = "Processing git activity..."
+                let gitFiles = await processGitActivity(
+                    settings: settings,
+                    date: dateString
+                )
+                filesToCommit.append(contentsOf: gitFiles)
 
                 if !filesToCommit.isEmpty {
                     statusMessage = "Committing and pushing..."
@@ -163,6 +169,129 @@ class StandupViewModel: ObservableObject {
                 phase = .error(error.localizedDescription)
             }
         }
+    }
+
+    // MARK: - Git activity processing
+
+    /// For each project that has a local repo path, fetch today's commits and summarize with OpenAI.
+    private func processGitActivity(settings: UserSettings, date: String) async -> [String] {
+        var gitFiles: [String] = []
+        let projectInfos = settings.projects
+
+        for info in projectInfos {
+            guard !info.repoURL.isEmpty else { continue }
+            let repoDir = info.repoURL
+
+            // Verify the directory exists and is a git repo
+            let fm = FileManager.default
+            let gitDir = (repoDir as NSString).appendingPathComponent(".git")
+            var isDir: ObjCBool = false
+            guard fm.fileExists(atPath: gitDir, isDirectory: &isDir), isDir.boolValue else { continue }
+
+            do {
+                // Get today's commits by this user
+                let authorName = settings.userName
+                let logOutput = try await git.run(
+                    ["log", "--since=\(date) 00:00", "--until=\(date) 23:59",
+                     "--author=\(authorName)", "--pretty=format:%s", "--no-merges"],
+                    in: repoDir
+                )
+
+                let commitMessages = logOutput
+                    .trimmingCharacters(in: .whitespacesAndNewlines)
+                    .components(separatedBy: "\n")
+                    .filter { !$0.isEmpty }
+
+                guard !commitMessages.isEmpty else { continue }
+
+                // Summarize commits with OpenAI
+                let bullets = try await summarizeCommits(
+                    commitMessages: commitMessages,
+                    projectName: info.name,
+                    apiKey: settings.openAIAPIKey
+                )
+
+                // Write to git.md
+                if let relativePath = markdown.addGitEntry(
+                    repoPath: settings.repoPath,
+                    date: date,
+                    userName: settings.userName,
+                    project: info.name,
+                    bulletPoints: bullets
+                ) {
+                    gitFiles.append(relativePath)
+                }
+            } catch {
+                print("Git activity for \(info.name): \(error.localizedDescription)")
+            }
+        }
+
+        return gitFiles
+    }
+
+    /// Summarizes raw commit messages into clean bullet points using OpenAI.
+    private func summarizeCommits(
+        commitMessages: [String],
+        projectName: String,
+        apiKey: String
+    ) async throws -> [String] {
+        let numbered = commitMessages.enumerated()
+            .map { "\($0.offset + 1). \($0.element)" }
+            .joined(separator: "\n")
+
+        let systemPrompt = """
+        You summarize git commit messages into clear, concise bullet points describing work done.
+
+        Rules:
+        - Group related commits into a single bullet point where it makes sense.
+        - Write in past tense, concise (one sentence each).
+        - Remove noise like "fix typo", "wip", "merge branch" unless they're the only commits.
+        - Return ONLY a JSON array of strings, one per bullet point. No markdown, no code fences.
+        - Example: ["Implemented user authentication flow","Fixed pagination bug in dashboard"]
+        """
+
+        let url = URL(string: "https://api.openai.com/v1/chat/completions")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(apiKey)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body: [String: Any] = [
+            "model": "gpt-4o-mini",
+            "temperature": 0.3,
+            "messages": [
+                ["role": "system", "content": systemPrompt],
+                ["role": "user", "content": "Project: \(projectName)\n\nCommit messages:\n\(numbered)"]
+            ]
+        ]
+
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let (data, _) = try await URLSession.shared.data(for: request)
+
+        struct ChatResponse: Decodable {
+            struct Choice: Decodable {
+                struct Message: Decodable { let content: String }
+                let message: Message
+            }
+            let choices: [Choice]
+        }
+
+        let chatResponse = try JSONDecoder().decode(ChatResponse.self, from: data)
+        guard let content = chatResponse.choices.first?.message.content else { return commitMessages }
+
+        let cleaned = content
+            .replacingOccurrences(of: "```json", with: "")
+            .replacingOccurrences(of: "```", with: "")
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+
+        guard let jsonData = cleaned.data(using: .utf8),
+              let bullets = try? JSONDecoder().decode([String].self, from: jsonData) else {
+            // Fallback: use raw commit messages
+            return commitMessages
+        }
+
+        return bullets
     }
 
     // MARK: - Parsing helpers

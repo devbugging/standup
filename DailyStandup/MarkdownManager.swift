@@ -31,6 +31,13 @@ class MarkdownManager {
         return "\(repoPath)/projects/\(project)/\(prefix)-todo.md"
     }
 
+    /// Returns the path for a git activity file.
+    /// Project-specific: `projects/{project}/{name}-git.md`
+    func gitFilePath(repoPath: String, project: String, userName: String) -> String {
+        let prefix = filePrefix(userName: userName)
+        return "\(repoPath)/projects/\(project)/\(prefix)-git.md"
+    }
+
     /// Returns the relative path from repoPath for git staging
     func relativeStandupPath(project: String, userName: String) -> String {
         let prefix = filePrefix(userName: userName)
@@ -46,6 +53,11 @@ class MarkdownManager {
             return "projects/\(prefix)-todo.md"
         }
         return "projects/\(project)/\(prefix)-todo.md"
+    }
+
+    func relativeGitPath(project: String, userName: String) -> String {
+        let prefix = filePrefix(userName: userName)
+        return "projects/\(project)/\(prefix)-git.md"
     }
 
     // MARK: - Scan projects
@@ -72,7 +84,6 @@ class MarkdownManager {
         repoPath: String,
         date: String,
         userName: String,
-        roles: String,
         itemsByProject: [String: [String]]
     ) -> [String] {
         var writtenFiles: [String] = []
@@ -80,12 +91,10 @@ class MarkdownManager {
         for (project, items) in itemsByProject {
             guard !items.isEmpty else { continue }
             let filePath = standupFilePath(repoPath: repoPath, project: project, userName: userName)
-            let content = items.map { "- \($0)" }.joined(separator: "\n")
+            let bulletLines = items.map { "- \($0)" }
 
-            var lines = readLines(filePath, fallback: "# Standup Notes — \(project)")
+            var lines = readLines(filePath, fallback: "# Standup Notes")
             let dateHeader = "## \(date)"
-            let personLines = ["### \(userName) (\(roles))", ""]
-                + content.components(separatedBy: "\n")
 
             if let dateIdx = lines.firstIndex(where: { $0 == dateHeader }) {
                 var insertIdx = dateIdx + 1
@@ -93,10 +102,10 @@ class MarkdownManager {
                     if lines[insertIdx].hasPrefix("## ") { break }
                     insertIdx += 1
                 }
-                lines.insert(contentsOf: [""] + personLines + [""], at: insertIdx)
+                lines.insert(contentsOf: [""] + bulletLines, at: insertIdx)
             } else {
                 let titleIdx = lines.firstIndex(where: { $0.hasPrefix("# ") }) ?? 0
-                lines.insert(contentsOf: ["", dateHeader, ""] + personLines + [""], at: titleIdx + 1)
+                lines.insert(contentsOf: ["", dateHeader, ""] + bulletLines, at: titleIdx + 1)
             }
 
             writeLines(filePath, lines)
@@ -113,7 +122,6 @@ class MarkdownManager {
         repoPath: String,
         date: String,
         userName: String,
-        roles: String,
         itemsByProject: [String: [String]]
     ) -> [String] {
         var writtenFiles: [String] = []
@@ -131,8 +139,7 @@ class MarkdownManager {
                     return "- [ ] " + line
                 }
 
-            var lines = readLines(filePath, fallback: "# To Do — \(project)")
-            let personLines = ["### \(userName) (\(roles))", ""] + todoLines
+            var lines = readLines(filePath, fallback: "# To Do")
             let dateHeader = "## \(date)"
 
             if let dateIdx = lines.firstIndex(where: { $0 == dateHeader }) {
@@ -141,10 +148,10 @@ class MarkdownManager {
                     if lines[insertIdx].hasPrefix("## ") { break }
                     insertIdx += 1
                 }
-                lines.insert(contentsOf: [""] + personLines + [""], at: insertIdx)
+                lines.insert(contentsOf: [""] + todoLines, at: insertIdx)
             } else {
                 let titleIdx = lines.firstIndex(where: { $0.hasPrefix("# ") }) ?? 0
-                lines.insert(contentsOf: ["", dateHeader, ""] + personLines + [""], at: titleIdx + 1)
+                lines.insert(contentsOf: ["", dateHeader, ""] + todoLines, at: titleIdx + 1)
             }
 
             writeLines(filePath, lines)
@@ -154,9 +161,43 @@ class MarkdownManager {
         return writtenFiles
     }
 
+    // MARK: - Write git activity entries
+
+    /// Writes AI-summarized git commit activity to a per-project git.md file.
+    /// Returns the relative file path if written, nil otherwise.
+    func addGitEntry(
+        repoPath: String,
+        date: String,
+        userName: String,
+        project: String,
+        bulletPoints: [String]
+    ) -> String? {
+        guard !bulletPoints.isEmpty else { return nil }
+        let filePath = gitFilePath(repoPath: repoPath, project: project, userName: userName)
+        let bulletLines = bulletPoints.map { "- \($0)" }
+
+        var lines = readLines(filePath, fallback: "# Git Activity")
+        let dateHeader = "## \(date)"
+
+        if let dateIdx = lines.firstIndex(where: { $0 == dateHeader }) {
+            var insertIdx = dateIdx + 1
+            while insertIdx < lines.count {
+                if lines[insertIdx].hasPrefix("## ") { break }
+                insertIdx += 1
+            }
+            lines.insert(contentsOf: [""] + bulletLines, at: insertIdx)
+        } else {
+            let titleIdx = lines.firstIndex(where: { $0.hasPrefix("# ") }) ?? 0
+            lines.insert(contentsOf: ["", dateHeader, ""] + bulletLines, at: titleIdx + 1)
+        }
+
+        writeLines(filePath, lines)
+        return relativeGitPath(project: project, userName: userName)
+    }
+
     // MARK: - Read pending todos (across all project folders)
 
-    /// Returns all unchecked todo items belonging to the given user, scanning all project todo files.
+    /// Returns all unchecked todo items for this user, scanning all per-user todo files.
     func readPendingTodos(repoPath: String, userName: String) -> [String] {
         let prefix = filePrefix(userName: userName)
         let todoFilename = "\(prefix)-todo.md"
@@ -167,7 +208,7 @@ class MarkdownManager {
 
         // Check general todo file
         let generalPath = "\(projectsDir)/\(todoFilename)"
-        results.append(contentsOf: readTodosFromFile(generalPath, userName: userName))
+        results.append(contentsOf: readTodosFromFile(generalPath))
 
         // Check each project subdirectory
         if let items = try? fm.contentsOfDirectory(atPath: projectsDir) {
@@ -179,7 +220,7 @@ class MarkdownManager {
                 }
                 let todoPath = (dirPath as NSString).appendingPathComponent(todoFilename)
                 if fm.fileExists(atPath: todoPath) {
-                    let projectTodos = readTodosFromFile(todoPath, userName: userName)
+                    let projectTodos = readTodosFromFile(todoPath)
                         .map { "\(item): \($0)" }
                     results.append(contentsOf: projectTodos)
                 }
@@ -189,18 +230,14 @@ class MarkdownManager {
         return results
     }
 
-    private func readTodosFromFile(_ filePath: String, userName: String) -> [String] {
+    /// Reads all unchecked todo items from a single file. Since files are per-user,
+    /// we just collect all `- [ ]` items regardless of section.
+    private func readTodosFromFile(_ filePath: String) -> [String] {
         let lines = readLines(filePath, fallback: "")
         var results: [String] = []
-        var inUserSection = false
 
         for line in lines {
-            if line.hasPrefix("## ") && !line.hasPrefix("### ") {
-                inUserSection = false
-            } else if line.hasPrefix("### ") {
-                let header = line.dropFirst(4).trimmingCharacters(in: .whitespaces)
-                inUserSection = header.lowercased().hasPrefix(userName.lowercased())
-            } else if line.hasPrefix("- [ ] ") && inUserSection {
+            if line.hasPrefix("- [ ] ") {
                 let item = String(line.dropFirst(6)).trimmingCharacters(in: .whitespaces)
                 if !item.isEmpty && !results.contains(item) {
                     results.append(item)
