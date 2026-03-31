@@ -15,10 +15,12 @@
 		25BA2D2B80E1AD8BE1E2E1F6 /* OpenAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD80443E51EA4641D394E51F /* OpenAIService.swift */; };
 		5CFAF90CD8F4B4FA56AEC1F0 /* TodoCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = A701822D0563D7D0E3659D4F /* TodoCache.swift */; };
 		9351425D5546900B5BA6076A /* DailyStandupApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00D2E2EC32A679FAC39E3069 /* DailyStandupApp.swift */; };
+		A597253FB602D7F277EC65BA /* SetupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58B13617851D3C97E7FD9B94 /* SetupView.swift */; };
 		AEBD00F5616F7AB1396494FE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 40BB37B6D60E87147970329B /* Assets.xcassets */; };
 		B67E8D80148EB33D053AD2B1 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4962EA08AFE8496842BC7B2 /* AppState.swift */; };
-		B9E7D7225EEDB0E1F4E0120F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D99FEDD03698F2C726FDF6DD /* SettingsView.swift */; };
 		CA5AB953A6F24FDD32043D64 /* TodoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94531DD23CBFCCDC03B900E6 /* TodoView.swift */; };
+		DE3CB73E0FF5A0450ED71D5D /* PlanningView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CA6331268619DECEA6071B20 /* PlanningView.swift */; };
+		DF7F679AB72E7E523A2573A0 /* ProjectSetupService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDF1060824811AC3553D4E81 /* ProjectSetupService.swift */; };
 		F50D1AEC635DEFA51C869048 /* GitService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4A1B0B51D74D26956936053 /* GitService.swift */; };
 		FDB2332C7D0F03F1CDD501EF /* MarkdownManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 034A506F071884773AF74476 /* MarkdownManager.swift */; };
 /* End PBXBuildFile section */
@@ -30,14 +32,16 @@
 		0DAE11EB0B5E41C4E8A4C210 /* StandupViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandupViewModel.swift; sourceTree = "<group>"; };
 		3F876A84A1D7A8AC4E42327D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		40BB37B6D60E87147970329B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		58B13617851D3C97E7FD9B94 /* SetupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetupView.swift; sourceTree = "<group>"; };
 		6D58073F69A8154E62D28FA8 /* StandupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StandupView.swift; sourceTree = "<group>"; };
 		84ABB68DBBC530E8440816A2 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		94531DD23CBFCCDC03B900E6 /* TodoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoView.swift; sourceTree = "<group>"; };
 		A701822D0563D7D0E3659D4F /* TodoCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodoCache.swift; sourceTree = "<group>"; };
 		B96DE26EF9B77907E905C85B /* DailyStandup.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DailyStandup.entitlements; sourceTree = "<group>"; };
 		C4962EA08AFE8496842BC7B2 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		CA6331268619DECEA6071B20 /* PlanningView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanningView.swift; sourceTree = "<group>"; };
 		D87A504766DEBDDB79C72C64 /* DailyStandup.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DailyStandup.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		D99FEDD03698F2C726FDF6DD /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		EDF1060824811AC3553D4E81 /* ProjectSetupService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProjectSetupService.swift; sourceTree = "<group>"; };
 		F4A1B0B51D74D26956936053 /* GitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitService.swift; sourceTree = "<group>"; };
 		F4F1A2EF4A843F6E5C84CFCC /* WhisperService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WhisperService.swift; sourceTree = "<group>"; };
 		FD80443E51EA4641D394E51F /* OpenAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIService.swift; sourceTree = "<group>"; };
@@ -80,7 +84,9 @@
 				034A506F071884773AF74476 /* MarkdownManager.swift */,
 				84ABB68DBBC530E8440816A2 /* NotificationManager.swift */,
 				FD80443E51EA4641D394E51F /* OpenAIService.swift */,
-				D99FEDD03698F2C726FDF6DD /* SettingsView.swift */,
+				CA6331268619DECEA6071B20 /* PlanningView.swift */,
+				EDF1060824811AC3553D4E81 /* ProjectSetupService.swift */,
+				58B13617851D3C97E7FD9B94 /* SetupView.swift */,
 				6D58073F69A8154E62D28FA8 /* StandupView.swift */,
 				0DAE11EB0B5E41C4E8A4C210 /* StandupViewModel.swift */,
 				A701822D0563D7D0E3659D4F /* TodoCache.swift */,
@@ -165,7 +171,9 @@
 				FDB2332C7D0F03F1CDD501EF /* MarkdownManager.swift in Sources */,
 				1C0FDFE00E610C873F20A35D /* NotificationManager.swift in Sources */,
 				25BA2D2B80E1AD8BE1E2E1F6 /* OpenAIService.swift in Sources */,
-				B9E7D7225EEDB0E1F4E0120F /* SettingsView.swift in Sources */,
+				DE3CB73E0FF5A0450ED71D5D /* PlanningView.swift in Sources */,
+				DF7F679AB72E7E523A2573A0 /* ProjectSetupService.swift in Sources */,
+				A597253FB602D7F277EC65BA /* SetupView.swift in Sources */,
 				0AD3DB78659C5860C152C7EC /* StandupView.swift in Sources */,
 				09599BECFB674E562BEFC0FF /* StandupViewModel.swift in Sources */,
 				5CFAF90CD8F4B4FA56AEC1F0 /* TodoCache.swift in Sources */,
