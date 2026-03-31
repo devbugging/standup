@@ -73,16 +73,6 @@ class GitService {
             }
         }
 
-        // Create standup.md and todo.md
-        let standupPath = (projectsDir as NSString).appendingPathComponent("standup.md")
-        let todoPath = (projectsDir as NSString).appendingPathComponent("todo.md")
-        if !fm.fileExists(atPath: standupPath) {
-            try "# Standup Notes\n".write(toFile: standupPath, atomically: true, encoding: .utf8)
-        }
-        if !fm.fileExists(atPath: todoPath) {
-            try "# To Do\n".write(toFile: todoPath, atomically: true, encoding: .utf8)
-        }
-
         // Create .gitignore
         let gitignorePath = (path as NSString).appendingPathComponent(".gitignore")
         if !fm.fileExists(atPath: gitignorePath) {

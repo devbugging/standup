@@ -114,34 +114,38 @@ class StandupViewModel: ObservableObject {
                 statusMessage = "Pulling latest..."
                 try await git.pull(repoPath: settings.repoPath)
 
-                statusMessage = "Updating standup notes..."
-                markdown.addStandupEntry(
-                    repoPath: settings.repoPath,
-                    date: dateString,
-                    userName: settings.userName,
-                    roles: settings.userRoles,
-                    content: standupText
-                )
-
-                statusMessage = "Updating todo list..."
-                markdown.addTodoEntry(
-                    repoPath: settings.repoPath,
-                    date: dateString,
-                    userName: settings.userName,
-                    roles: settings.userRoles,
-                    content: todoText
-                )
-
-                statusMessage = "Committing and pushing..."
                 var filesToCommit = [String]()
+
+                // Parse standup text by project and write per-project files
                 if !standupText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    filesToCommit.append("projects/standup.md")
+                    statusMessage = "Updating standup notes..."
+                    let standupByProject = parseStandupByProject(standupText)
+                    let standupFiles = markdown.addStandupEntries(
+                        repoPath: settings.repoPath,
+                        date: dateString,
+                        userName: settings.userName,
+                        roles: settings.userRoles,
+                        itemsByProject: standupByProject
+                    )
+                    filesToCommit.append(contentsOf: standupFiles)
                 }
+
+                // Parse todo text by project and write per-project files
                 if !todoText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    filesToCommit.append("projects/todo.md")
+                    statusMessage = "Updating todo list..."
+                    let todoByProject = parseTodoByProject(todoText)
+                    let todoFiles = markdown.addTodoEntries(
+                        repoPath: settings.repoPath,
+                        date: dateString,
+                        userName: settings.userName,
+                        roles: settings.userRoles,
+                        itemsByProject: todoByProject
+                    )
+                    filesToCommit.append(contentsOf: todoFiles)
                 }
 
                 if !filesToCommit.isEmpty {
+                    statusMessage = "Committing and pushing..."
                     try await git.commitAndPush(
                         repoPath: settings.repoPath,
                         message: "standup: \(settings.userName) \(dateString)",
@@ -159,6 +163,54 @@ class StandupViewModel: ObservableObject {
                 phase = .error(error.localizedDescription)
             }
         }
+    }
+
+    // MARK: - Parsing helpers
+
+    /// Parses standup text formatted as `- **Project:** description` into a dictionary grouped by project.
+    private func parseStandupByProject(_ text: String) -> [String: [String]] {
+        var result: [String: [String]] = [:]
+        for line in text.components(separatedBy: "\n") {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            guard !trimmed.isEmpty else { continue }
+
+            // Match "- **Project:** description"
+            if trimmed.hasPrefix("- **"),
+               let endBold = trimmed.range(of: ":**") {
+                let project = String(trimmed[trimmed.index(trimmed.startIndex, offsetBy: 4)..<endBold.lowerBound])
+                let description = String(trimmed[endBold.upperBound...]).trimmingCharacters(in: .whitespaces)
+                result[project, default: []].append(description)
+            } else {
+                // No project tag — goes to General
+                let clean = trimmed.hasPrefix("- ") ? String(trimmed.dropFirst(2)) : trimmed
+                result["General", default: []].append(clean)
+            }
+        }
+        return result
+    }
+
+    /// Parses todo text formatted as `Project: description` into a dictionary grouped by project.
+    private func parseTodoByProject(_ text: String) -> [String: [String]] {
+        var result: [String: [String]] = [:]
+        for line in text.components(separatedBy: "\n") {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            guard !trimmed.isEmpty else { continue }
+
+            // Match "Project: description"
+            if let colonRange = trimmed.range(of: ": ") {
+                let project = String(trimmed[..<colonRange.lowerBound])
+                let description = String(trimmed[colonRange.upperBound...])
+                // Only treat as project if it matches a known project name
+                if projects.contains(project) {
+                    result[project, default: []].append(description)
+                } else {
+                    result["General", default: []].append(trimmed)
+                }
+            } else {
+                result["General", default: []].append(trimmed)
+            }
+        }
+        return result
     }
 
     func reset() {
