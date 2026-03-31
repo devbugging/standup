@@ -8,8 +8,10 @@ struct UserSettings: Codable, Equatable {
     var selectedMicUID: String = ""
     var notificationHour: Int = 16
     var notificationMinute: Int = 0
-    var repoPath: String = "/Users/gregorg/Dev/projects"
+    var repoPath: String = ""
+    var projectNames: [String] = []
     var launchAtLogin: Bool = true
+    var setupCompleted: Bool = false
 }
 
 class AppState: ObservableObject {
@@ -37,6 +39,9 @@ class AppState: ObservableObject {
     }
 
     var isConfigured: Bool {
-        !settings.userName.isEmpty && !settings.openAIAPIKey.isEmpty
+        settings.setupCompleted
+            && !settings.userName.isEmpty
+            && !settings.openAIAPIKey.isEmpty
+            && !settings.repoPath.isEmpty
     }
 }

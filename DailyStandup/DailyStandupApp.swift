@@ -32,8 +32,8 @@ struct MenuBarContent: View {
 
         Divider()
 
-        Button("Settings...") {
-            WindowManager.shared.showSettings()
+        Button("Setup...") {
+            WindowManager.shared.showSetup()
         }
         .keyboardShortcut(",")
 
@@ -71,7 +71,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         if !AppState.shared.isConfigured {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                WindowManager.shared.showSettings()
+                WindowManager.shared.showSetup()
             }
         }
     }
@@ -86,7 +86,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 class WindowManager {
     static let shared = WindowManager()
     private var standupWindow: NSWindow?
-    private var settingsWindow: NSWindow?
+    private var setupWindow: NSWindow?
     private var todoWindow: NSWindow?
 
     func showStandup() {
@@ -113,26 +113,26 @@ class WindowManager {
         NSApp.activate(ignoringOtherApps: true)
     }
 
-    func showSettings() {
-        let view = SettingsView()
+    func showSetup() {
+        let view = SetupView()
         let hostingView = NSHostingView(rootView: view)
 
-        if settingsWindow == nil {
-            settingsWindow = NSWindow(
-                contentRect: NSRect(x: 0, y: 0, width: 480, height: 560),
+        if setupWindow == nil {
+            setupWindow = NSWindow(
+                contentRect: NSRect(x: 0, y: 0, width: 520, height: 620),
                 styleMask: [.titled, .closable, .fullSizeContentView],
                 backing: .buffered,
                 defer: false
             )
-            settingsWindow?.titlebarAppearsTransparent = true
-            settingsWindow?.titleVisibility = .hidden
-            settingsWindow?.isReleasedWhenClosed = false
-            settingsWindow?.backgroundColor = .clear
-            settingsWindow?.isMovableByWindowBackground = true
+            setupWindow?.titlebarAppearsTransparent = true
+            setupWindow?.titleVisibility = .hidden
+            setupWindow?.isReleasedWhenClosed = false
+            setupWindow?.backgroundColor = .clear
+            setupWindow?.isMovableByWindowBackground = true
         }
-        settingsWindow?.contentView = hostingView
-        settingsWindow?.center()
-        settingsWindow?.makeKeyAndOrderFront(nil)
+        setupWindow?.contentView = hostingView
+        setupWindow?.center()
+        setupWindow?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
 

@@ -89,7 +89,7 @@ struct StandupView: View {
     }
 
     private var settingsButton: some View {
-        Button(action: { WindowManager.shared.showSettings() }) {
+        Button(action: { WindowManager.shared.showSetup() }) {
             Image(systemName: "gearshape")
                 .font(.system(size: 13, weight: .medium))
                 .foregroundStyle(.secondary)

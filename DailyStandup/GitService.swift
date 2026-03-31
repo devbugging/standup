@@ -46,6 +46,72 @@ class GitService {
         }
     }
 
+    /// Checks if a directory is a git repo with a projects/ subdirectory
+    func isValidRepo(at path: String) -> Bool {
+        let fm = FileManager.default
+        let gitDir = (path as NSString).appendingPathComponent(".git")
+        let projectsDir = (path as NSString).appendingPathComponent("projects")
+        var isDir: ObjCBool = false
+        let hasGit = fm.fileExists(atPath: gitDir, isDirectory: &isDir) && isDir.boolValue
+        let hasProjects = fm.fileExists(atPath: projectsDir, isDirectory: &isDir) && isDir.boolValue
+        return hasGit && hasProjects
+    }
+
+    /// Creates a new git repo with the standup structure
+    func initializeRepo(at path: String, projectNames: [String]) async throws {
+        let fm = FileManager.default
+        let projectsDir = (path as NSString).appendingPathComponent("projects")
+
+        // Create root and projects directory
+        try fm.createDirectory(atPath: projectsDir, withIntermediateDirectories: true)
+
+        // Create project subdirectories
+        for name in projectNames {
+            let projectDir = (projectsDir as NSString).appendingPathComponent(name)
+            if !fm.fileExists(atPath: projectDir) {
+                try fm.createDirectory(atPath: projectDir, withIntermediateDirectories: true)
+            }
+        }
+
+        // Create standup.md and todo.md
+        let standupPath = (projectsDir as NSString).appendingPathComponent("standup.md")
+        let todoPath = (projectsDir as NSString).appendingPathComponent("todo.md")
+        if !fm.fileExists(atPath: standupPath) {
+            try "# Standup Notes\n".write(toFile: standupPath, atomically: true, encoding: .utf8)
+        }
+        if !fm.fileExists(atPath: todoPath) {
+            try "# To Do\n".write(toFile: todoPath, atomically: true, encoding: .utf8)
+        }
+
+        // Create .gitignore
+        let gitignorePath = (path as NSString).appendingPathComponent(".gitignore")
+        if !fm.fileExists(atPath: gitignorePath) {
+            try ".DS_Store\n".write(toFile: gitignorePath, atomically: true, encoding: .utf8)
+        }
+
+        // Initialize git repo if not already one
+        let gitDir = (path as NSString).appendingPathComponent(".git")
+        if !fm.fileExists(atPath: gitDir) {
+            _ = try await run(["init"], in: path)
+        }
+
+        // Stage and commit
+        _ = try await run(["add", "."], in: path)
+        _ = try await run(["commit", "-m", "Initial standup repository setup"], in: path)
+    }
+
+    /// Adds new project directories to an existing repo
+    func addProjects(_ names: [String], repoPath: String) throws {
+        let fm = FileManager.default
+        let projectsDir = (repoPath as NSString).appendingPathComponent("projects")
+        for name in names {
+            let projectDir = (projectsDir as NSString).appendingPathComponent(name)
+            if !fm.fileExists(atPath: projectDir) {
+                try fm.createDirectory(atPath: projectDir, withIntermediateDirectories: true)
+            }
+        }
+    }
+
     func pull(repoPath: String) async throws {
         _ = try await run(["pull", "--rebase"], in: repoPath)
     }
