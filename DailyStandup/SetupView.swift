@@ -230,7 +230,48 @@ struct SetupView: View {
 
                     settingsField("Description", text: $newDescription, placeholder: "Short description (optional)")
 
-                    settingsField("Repository", text: $newRepoURL, placeholder: "https://github.com/org/repo (optional)")
+                    // Repository local path
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Repository")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundStyle(.secondary)
+                        HStack(spacing: 8) {
+                            Text(newRepoURL.isEmpty ? "No folder selected (optional)" : newRepoURL)
+                                .font(.system(size: 12, design: .monospaced))
+                                .foregroundStyle(newRepoURL.isEmpty ? .tertiary : .primary)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(10)
+                                .background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .strokeBorder(Color.primary.opacity(0.06), lineWidth: 1)
+                                )
+
+                            Button(action: {
+                                let panel = NSOpenPanel()
+                                panel.canChooseDirectories = true
+                                panel.canChooseFiles = false
+                                panel.allowsMultipleSelection = false
+                                panel.prompt = "Select"
+                                if panel.runModal() == .OK, let url = panel.url {
+                                    newRepoURL = url.path
+                                }
+                            }) {
+                                HStack(spacing: 5) {
+                                    Image(systemName: "folder.badge.plus")
+                                        .font(.system(size: 12))
+                                    Text("Choose")
+                                        .font(.system(size: 12, weight: .medium))
+                                }
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 8)
+                                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
 
                     settingsField("Website", text: $newWebsiteURL, placeholder: "https://example.com (optional)")
 
