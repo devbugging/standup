@@ -30,7 +30,7 @@ struct StandupView: View {
                 ScrollView {
                     VStack(spacing: 24) {
                         phaseContent
-                            .id(viewModel.phase)
+                            .id(phaseIdentity)
                             .transition(.asymmetric(
                                 insertion: .opacity.combined(with: .move(edge: .trailing)),
                                 removal: .opacity.combined(with: .move(edge: .leading))
@@ -45,6 +45,14 @@ struct StandupView: View {
         .frame(minWidth: 560, idealWidth: 600, minHeight: 580, idealHeight: 680)
         .onAppear { viewModel.prepare() }
         .animation(.easeInOut(duration: 0.35), value: viewModel.phase)
+    }
+
+    /// Groups ready/recording under the same identity so SwiftUI doesn't trigger a page transition.
+    private var phaseIdentity: String {
+        switch viewModel.phase {
+        case .ready, .recording: return "ready"
+        default: return "\(viewModel.phase)"
+        }
     }
 
     // MARK: - Background
