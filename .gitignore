@@ -1,1 +1,4 @@
 key
+.DS_Store
+*.log
+*.tmp
