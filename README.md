@@ -1,6 +1,16 @@
-# Daily Standup
+<p align="center">
+  <img src="icon.svg" width="80" height="80" alt="Daily Standup icon"/>
+</p>
 
-A macOS menu bar app that records your daily standup via voice, transcribes it with AI, and commits structured notes to a git repository. The repository serves as a living record of your work that can be used as context for other AI tools.
+<h1 align="center">Daily Standup</h1>
+
+<p align="center">
+  A macOS menu bar app that records your daily standup via voice, transcribes it with AI, and commits structured notes to a git repository.
+  <br/>
+  The repository serves as a living record of your work — designed to be used as context for other AI tools.
+</p>
+
+---
 
 ## How it works
 
@@ -9,6 +19,10 @@ A macOS menu bar app that records your daily standup via voice, transcribes it w
 3. **Review & edit** -- tweak the output before committing
 4. **Commit** -- writes per-project standup, todo, and git activity files, then commits to the repo
 5. **Daily reminder** -- opens the standup window at your configured time
+
+<p align="center">
+  <img src="dash.png" width="560" alt="Standup recording screen"/>
+</p>
 
 ## The repository as AI context
 
@@ -35,40 +49,29 @@ Point other AI tools (Claude, Cursor, etc.) at this repository to give them cont
 
 On first launch a setup wizard walks you through three steps:
 
-### Step 1: Profile & API Key
+<p align="center">
+  <img src="setup.png" width="440" alt="Setup wizard"/>
+</p>
 
-Enter your name, roles, and OpenAI API key. A button links directly to the OpenAI dashboard to create a key.
+**Step 1: Profile & API Key** -- Enter your name, roles, and OpenAI API key. A button links directly to the OpenAI dashboard to create a key.
 
-### Step 2: Repository & Projects
+**Step 2: Repository & Projects** -- Choose a folder for your standup repository. The app creates a git repo with the right structure, or detects an existing one. Add your projects with:
 
-Choose a folder for your standup repository. The app creates a git repo with the right structure, or detects an existing one.
-
-Add your projects with:
 - **Name** -- becomes a folder in the repo
 - **Description** -- short summary
-- **Repositories** -- one or more local git repo paths (optional). The app fetches your daily commits from these and writes an AI summary to `git.md`
+- **Repositories** -- one or more local git repo paths (the app fetches your daily commits and writes an AI summary to `git.md`)
 - **Website** -- fetched and summarized by AI into `project.md`
 - **Fetch git activity** -- toggle per project
 
-### Step 3: Preferences
+**Step 3: Preferences** -- Set your daily reminder time, choose a microphone, and configure launch at login.
 
-Set your daily reminder time, choose a microphone, and configure launch at login.
-
-## Usage
-
-### Recording a standup
-
-1. Click the menu bar mic icon > **Start Standup**
-2. Click **Record** and speak naturally -- mention project names for auto-tagging
-3. Click **Stop** when done
-4. Review the AI-structured notes, edit if needed
-5. Click **Confirm & Push**
-
-The app writes to per-project files, fetches git activity from your project repos, and commits everything.
-
-### Viewing your daily to-do
+## Daily To-Do
 
 Click **Show Daily To-Do** from the menu bar. Shows all pending tasks across projects, organized and prioritized by AI. Cached so it opens instantly; refreshes once per day.
+
+<p align="center">
+  <img src="todo.png" width="440" alt="Daily To-Do view"/>
+</p>
 
 ## Building from source
 
