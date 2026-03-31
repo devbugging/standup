@@ -170,43 +170,27 @@ struct SetupView: View {
 
     private var repositoryStep: some View {
         VStack(spacing: 20) {
-            GlassCard {
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "doc.text.magnifyingglass")
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundStyle(Color.accentColor)
-                        Text("What is this?")
-                            .font(.system(size: 13, weight: .semibold))
-                    }
-
-                    Text("Daily Standup stores your updates in a local git repository. This repo contains all your daily standup notes and project information — it can also serve as context for other AI tools.")
-                        .font(.system(size: 12))
-                        .foregroundStyle(.secondary)
-                        .lineSpacing(2)
-                }
-            }
-
-            // Folder selection
-            settingsCard(title: "Repository Location", icon: "folder") {
-                VStack(alignment: .leading, spacing: 10) {
-                    Text("Choose where to create (or find) your standup repository.")
+            // Repository location (merged with explanation)
+            settingsCard(title: "Repository", icon: "folder") {
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("Daily Standup stores your updates in a repository. This repo contains all your daily standup notes and project information — it can also serve as context for other AI tools.")
                         .font(.system(size: 11))
                         .foregroundStyle(.secondary)
+                        .lineSpacing(2)
 
                     HStack(spacing: 8) {
-                        TextField("/path/to/standup-repo", text: $appState.settings.repoPath)
-                            .textFieldStyle(.plain)
+                        Text(appState.settings.repoPath.isEmpty ? "No folder selected" : appState.settings.repoPath)
                             .font(.system(size: 12, design: .monospaced))
+                            .foregroundStyle(appState.settings.repoPath.isEmpty ? .tertiary : .primary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(10)
                             .background(Color(nsColor: .textBackgroundColor), in: RoundedRectangle(cornerRadius: 8))
                             .overlay(
                                 RoundedRectangle(cornerRadius: 8)
                                     .strokeBorder(Color.primary.opacity(0.06), lineWidth: 1)
                             )
-                            .onChange(of: appState.settings.repoPath) { _, newValue in
-                                checkRepoStatus(newValue)
-                            }
 
                         Button(action: {
                             let panel = NSOpenPanel()
@@ -217,12 +201,18 @@ struct SetupView: View {
                             panel.prompt = "Select"
                             if panel.runModal() == .OK, let url = panel.url {
                                 appState.settings.repoPath = url.path
+                                checkRepoStatus(url.path)
                             }
                         }) {
-                            Image(systemName: "folder.badge.plus")
-                                .font(.system(size: 13))
-                                .frame(width: 34, height: 34)
-                                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
+                            HStack(spacing: 5) {
+                                Image(systemName: "folder.badge.plus")
+                                    .font(.system(size: 12))
+                                Text("Choose Folder")
+                                    .font(.system(size: 12, weight: .medium))
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 8))
                         }
                         .buttonStyle(.plain)
                     }
@@ -233,10 +223,10 @@ struct SetupView: View {
                 }
             }
 
-            // Add project form
-            settingsCard(title: editingIndex != nil ? "Edit Project" : "Add Project", icon: "plus.rectangle.on.folder") {
+            // Project form
+            settingsCard(title: editingIndex != nil ? "Edit Project" : "New Project", icon: "rectangle.on.rectangle") {
                 VStack(alignment: .leading, spacing: 10) {
-                    settingsField("Name", text: $newName, placeholder: "e.g. Regolingo")
+                    settingsField("Name", text: $newName, placeholder: "Project name")
 
                     settingsField("Description", text: $newDescription, placeholder: "Short description (optional)")
 
@@ -256,13 +246,13 @@ struct SetupView: View {
                         Button(action: addOrUpdateProject) {
                             HStack(spacing: 4) {
                                 Image(systemName: editingIndex != nil ? "checkmark" : "plus")
-                                    .font(.system(size: 10, weight: .bold))
-                                Text(editingIndex != nil ? "Update" : "Add Project")
+                                    .font(.system(size: 11, weight: .semibold))
+                                Text(editingIndex != nil ? "Update Project" : "Add Project")
                                     .font(.system(size: 12, weight: .medium))
                             }
                         }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.small)
+                        .buttonStyle(.plain)
+                        .foregroundStyle(newName.trimmingCharacters(in: .whitespaces).isEmpty ? Color.accentColor.opacity(0.4) : Color.accentColor)
                         .disabled(newName.trimmingCharacters(in: .whitespaces).isEmpty)
                     }
                 }
