@@ -10,42 +10,42 @@ class MarkdownManager {
     }
 
     /// Returns the path for a standup file.
-    /// Project-specific: `projects/{project}/{name}standup.md`
-    /// General: `projects/{name}standup.md`
+    /// Project-specific: `projects/{project}/{name}-standup.md`
+    /// General: `projects/{name}-standup.md`
     func standupFilePath(repoPath: String, project: String, userName: String) -> String {
         let prefix = filePrefix(userName: userName)
         if project == "General" {
-            return "\(repoPath)/projects/\(prefix)standup.md"
+            return "\(repoPath)/projects/\(prefix)-standup.md"
         }
-        return "\(repoPath)/projects/\(project)/\(prefix)standup.md"
+        return "\(repoPath)/projects/\(project)/\(prefix)-standup.md"
     }
 
     /// Returns the path for a todo file.
-    /// Project-specific: `projects/{project}/{name}todo.md`
-    /// General: `projects/{name}todo.md`
+    /// Project-specific: `projects/{project}/{name}-todo.md`
+    /// General: `projects/{name}-todo.md`
     func todoFilePath(repoPath: String, project: String, userName: String) -> String {
         let prefix = filePrefix(userName: userName)
         if project == "General" {
-            return "\(repoPath)/projects/\(prefix)todo.md"
+            return "\(repoPath)/projects/\(prefix)-todo.md"
         }
-        return "\(repoPath)/projects/\(project)/\(prefix)todo.md"
+        return "\(repoPath)/projects/\(project)/\(prefix)-todo.md"
     }
 
     /// Returns the relative path from repoPath for git staging
     func relativeStandupPath(project: String, userName: String) -> String {
         let prefix = filePrefix(userName: userName)
         if project == "General" {
-            return "projects/\(prefix)standup.md"
+            return "projects/\(prefix)-standup.md"
         }
-        return "projects/\(project)/\(prefix)standup.md"
+        return "projects/\(project)/\(prefix)-standup.md"
     }
 
     func relativeTodoPath(project: String, userName: String) -> String {
         let prefix = filePrefix(userName: userName)
         if project == "General" {
-            return "projects/\(prefix)todo.md"
+            return "projects/\(prefix)-todo.md"
         }
-        return "projects/\(project)/\(prefix)todo.md"
+        return "projects/\(project)/\(prefix)-todo.md"
     }
 
     // MARK: - Scan projects
@@ -159,7 +159,7 @@ class MarkdownManager {
     /// Returns all unchecked todo items belonging to the given user, scanning all project todo files.
     func readPendingTodos(repoPath: String, userName: String) -> [String] {
         let prefix = filePrefix(userName: userName)
-        let todoFilename = "\(prefix)todo.md"
+        let todoFilename = "\(prefix)-todo.md"
         let projectsDir = "\(repoPath)/projects"
         let fm = FileManager.default
 
