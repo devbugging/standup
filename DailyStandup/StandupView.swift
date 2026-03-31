@@ -124,8 +124,7 @@ struct StandupView: View {
     @ViewBuilder
     private var phaseContent: some View {
         switch viewModel.phase {
-        case .ready:       readyPhase
-        case .recording:   recordingPhase
+        case .ready, .recording: readyPhase
         case .processing:  processingPhase
         case .review:      reviewPhase
         case .pushing:     pushingPhase
@@ -135,6 +134,10 @@ struct StandupView: View {
     }
 
     // MARK: - Ready Phase
+
+    private var isRecording: Bool {
+        viewModel.phase == .recording
+    }
 
     private var readyPhase: some View {
         VStack(spacing: 20) {
@@ -156,6 +159,7 @@ struct StandupView: View {
                     }
                 }
             }
+            .opacity(isRecording ? 0.5 : 1.0)
 
             // Projects
             GlassCard {
@@ -186,6 +190,7 @@ struct StandupView: View {
                     }
                 }
             }
+            .opacity(isRecording ? 0.5 : 1.0)
 
             if !viewModel.recorder.permissionGranted {
                 micPermissionWarning
@@ -193,10 +198,19 @@ struct StandupView: View {
 
             Spacer(minLength: 8)
 
-            // Record button
-            RecordButton(action: { viewModel.startRecording() })
-                .disabled(!viewModel.recorder.permissionGranted)
+            // Record / Stop button
+            if isRecording {
+                RecordingIndicatorButton(
+                    elapsedTime: viewModel.recorder.elapsedTime,
+                    audioLevel: viewModel.recorder.audioLevel,
+                    action: { viewModel.completeRecording() }
+                )
+            } else {
+                RecordButton(action: { viewModel.startRecording() })
+                    .disabled(!viewModel.recorder.permissionGranted)
+            }
         }
+        .animation(.easeInOut(duration: 0.25), value: isRecording)
     }
 
     private var micPermissionWarning: some View {
@@ -210,69 +224,6 @@ struct StandupView: View {
         }
         .padding(12)
         .background(.orange.opacity(0.08), in: RoundedRectangle(cornerRadius: 10))
-    }
-
-    // MARK: - Recording Phase
-
-    private var recordingPhase: some View {
-        VStack(spacing: 0) {
-            Spacer(minLength: 40)
-
-            // Animated rings that respond to audio level
-            ZStack {
-                let level = CGFloat(viewModel.recorder.audioLevel)
-
-                ForEach(0..<3, id: \.self) { i in
-                    Circle()
-                        .stroke(Color.red.opacity(0.12 - Double(i) * 0.03), lineWidth: 2)
-                        .frame(width: CGFloat(80 + i * 40), height: CGFloat(80 + i * 40))
-                        .scaleEffect(1.0 + level * CGFloat(0.15 + Double(i) * 0.08))
-                        .animation(.easeOut(duration: 0.15), value: level)
-                }
-
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [Color.red, Color.red.opacity(0.8)],
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: 28
-                        )
-                    )
-                    .frame(width: 56, height: 56)
-                    .scaleEffect(1.0 + level * 0.12)
-                    .animation(.easeOut(duration: 0.15), value: level)
-                    .shadow(color: .red.opacity(0.3 + Double(level) * 0.3), radius: 16 + level * 10, y: 4)
-            }
-
-            Spacer().frame(height: 36)
-
-            Text(formatTime(viewModel.recorder.elapsedTime))
-                .font(.system(size: 52, weight: .ultraLight, design: .rounded))
-                .monospacedDigit()
-                .foregroundStyle(.primary)
-
-            Text("Recording...")
-                .font(.system(size: 13, weight: .medium))
-                .foregroundStyle(.secondary)
-                .padding(.top, 4)
-
-            Spacer(minLength: 40)
-
-            Button(action: { viewModel.completeRecording() }) {
-                HStack(spacing: 8) {
-                    Image(systemName: "stop.fill")
-                        .font(.system(size: 10))
-                    Text("Complete Recording")
-                        .font(.system(size: 14, weight: .semibold))
-                }
-                .frame(maxWidth: 280)
-                .padding(.vertical, 12)
-            }
-            .buttonStyle(.borderedProminent)
-            .tint(.primary.opacity(0.85))
-            .controlSize(.large)
-        }
     }
 
     // MARK: - Processing Phase
@@ -380,7 +331,8 @@ struct StandupView: View {
             }
 
             TextEditor(text: text)
-                .font(.system(size: 12.5, design: .monospaced))
+                .font(.system(size: 13, weight: .regular))
+                .lineSpacing(4)
                 .frame(minHeight: minHeight, maxHeight: maxHeight)
                 .scrollContentBackground(.hidden)
                 .padding(12)
@@ -586,6 +538,77 @@ struct RecordButton: View {
         .buttonStyle(.plain)
         .onHover { isHovering = $0 }
         .animation(.easeOut(duration: 0.2), value: isHovering)
+    }
+}
+
+// MARK: - Recording Indicator Button
+
+struct RecordingIndicatorButton: View {
+    let elapsedTime: TimeInterval
+    let audioLevel: Float
+    let action: () -> Void
+    @State private var isHovering = false
+    @State private var pulseScale: CGFloat = 1.0
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 14) {
+                ZStack {
+                    let level = CGFloat(audioLevel)
+
+                    // Pulsing outer rings
+                    ForEach(0..<2, id: \.self) { i in
+                        Circle()
+                            .stroke(Color.red.opacity(0.10 - Double(i) * 0.04), lineWidth: 2)
+                            .frame(width: CGFloat(72 + i * 24), height: CGFloat(72 + i * 24))
+                            .scaleEffect(1.0 + level * CGFloat(0.1 + Double(i) * 0.06))
+                            .animation(.easeOut(duration: 0.15), value: level)
+                    }
+
+                    // Outer glow
+                    Circle()
+                        .fill(Color.red.opacity(isHovering ? 0.12 : 0.06))
+                        .frame(width: 80, height: 80)
+                        .scaleEffect(isHovering ? 1.1 : 1.0)
+
+                    // Main button - stop square
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.red, Color.red.opacity(0.85)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .frame(width: 52, height: 52)
+                        .shadow(color: .red.opacity(isHovering ? 0.5 : 0.3), radius: isHovering ? 16 : 10, y: 3)
+
+                    Image(systemName: "stop.fill")
+                        .font(.system(size: 18))
+                        .foregroundStyle(.white)
+                }
+
+                VStack(spacing: 4) {
+                    Text(formatTime(elapsedTime))
+                        .font(.system(size: 22, weight: .light, design: .rounded))
+                        .monospacedDigit()
+                        .foregroundStyle(.primary)
+
+                    Text("Recording — tap to stop")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.secondary)
+                }
+            }
+        }
+        .buttonStyle(.plain)
+        .onHover { isHovering = $0 }
+        .animation(.easeOut(duration: 0.2), value: isHovering)
+    }
+
+    private func formatTime(_ seconds: TimeInterval) -> String {
+        let mins = Int(seconds) / 60
+        let secs = Int(seconds) % 60
+        return String(format: "%02d:%02d", mins, secs)
     }
 }
 
