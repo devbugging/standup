@@ -1,0 +1,90 @@
+{
+  "" : {
+    "const-values" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/DailyStandup-master.swiftconstvalues",
+    "dependencies" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/DailyStandup-master.d",
+    "diagnostics" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/DailyStandup-master.dia",
+    "emit-module-dependencies" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/DailyStandup-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/DailyStandup-master-emit-module.dia",
+    "swift-dependencies" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/DailyStandup-master.swiftdeps"
+  },
+  "/Users/gregorg/Dev/standup/DailyStandup/AppState.swift" : {
+    "index-unit-output-path" : "/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/AppState.o",
+    "llvm-bc" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/AppState.bc",
+    "object" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/AppState.o"
+  },
+  "/Users/gregorg/Dev/standup/DailyStandup/AudioRecorder.swift" : {
+    "index-unit-output-path" : "/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/AudioRecorder.o",
+    "llvm-bc" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/AudioRecorder.bc",
+    "object" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/AudioRecorder.o"
+  },
+  "/Users/gregorg/Dev/standup/DailyStandup/DailyStandupApp.swift" : {
+    "index-unit-output-path" : "/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/DailyStandupApp.o",
+    "llvm-bc" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/DailyStandupApp.bc",
+    "object" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/DailyStandupApp.o"
+  },
+  "/Users/gregorg/Dev/standup/DailyStandup/GitService.swift" : {
+    "index-unit-output-path" : "/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/GitService.o",
+    "llvm-bc" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/GitService.bc",
+    "object" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/GitService.o"
+  },
+  "/Users/gregorg/Dev/standup/DailyStandup/MarkdownManager.swift" : {
+    "index-unit-output-path" : "/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/MarkdownManager.o",
+    "llvm-bc" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/MarkdownManager.bc",
+    "object" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/MarkdownManager.o"
+  },
+  "/Users/gregorg/Dev/standup/DailyStandup/NotificationManager.swift" : {
+    "index-unit-output-path" : "/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/NotificationManager.o",
+    "llvm-bc" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/NotificationManager.bc",
+    "object" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/NotificationManager.o"
+  },
+  "/Users/gregorg/Dev/standup/DailyStandup/OpenAIService.swift" : {
+    "index-unit-output-path" : "/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/OpenAIService.o",
+    "llvm-bc" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/OpenAIService.bc",
+    "object" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/OpenAIService.o"
+  },
+  "/Users/gregorg/Dev/standup/DailyStandup/PlanningView.swift" : {
+    "index-unit-output-path" : "/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/PlanningView.o",
+    "llvm-bc" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/PlanningView.bc",
+    "object" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/PlanningView.o"
+  },
+  "/Users/gregorg/Dev/standup/DailyStandup/ProjectSetupService.swift" : {
+    "index-unit-output-path" : "/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/ProjectSetupService.o",
+    "llvm-bc" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/ProjectSetupService.bc",
+    "object" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/ProjectSetupService.o"
+  },
+  "/Users/gregorg/Dev/standup/DailyStandup/SetupView.swift" : {
+    "index-unit-output-path" : "/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/SetupView.o",
+    "llvm-bc" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/SetupView.bc",
+    "object" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/SetupView.o"
+  },
+  "/Users/gregorg/Dev/standup/DailyStandup/StandupView.swift" : {
+    "index-unit-output-path" : "/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/StandupView.o",
+    "llvm-bc" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/StandupView.bc",
+    "object" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/StandupView.o"
+  },
+  "/Users/gregorg/Dev/standup/DailyStandup/StandupViewModel.swift" : {
+    "index-unit-output-path" : "/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/StandupViewModel.o",
+    "llvm-bc" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/StandupViewModel.bc",
+    "object" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/StandupViewModel.o"
+  },
+  "/Users/gregorg/Dev/standup/DailyStandup/TodoCache.swift" : {
+    "index-unit-output-path" : "/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/TodoCache.o",
+    "llvm-bc" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/TodoCache.bc",
+    "object" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/TodoCache.o"
+  },
+  "/Users/gregorg/Dev/standup/DailyStandup/TodoView.swift" : {
+    "index-unit-output-path" : "/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/TodoView.o",
+    "llvm-bc" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/TodoView.bc",
+    "object" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/TodoView.o"
+  },
+  "/Users/gregorg/Dev/standup/DailyStandup/WhisperService.swift" : {
+    "index-unit-output-path" : "/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/WhisperService.o",
+    "llvm-bc" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/WhisperService.bc",
+    "object" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/WhisperService.o"
+  },
+  "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "index-unit-output-path" : "/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/Objects-normal/arm64/GeneratedAssetSymbols.o"
+  }
+}

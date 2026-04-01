@@ -1,0 +1,22 @@
+version: "Apple Swift version 6.1.2 (swiftlang-6.1.2.1.2 clang-1700.0.13.5)"
+options: "a94439de519d29859d8e872dee4001a33f001c0f9cb0903e5612df07b162b3e2"
+build_start_time: [1775044186, 10791000]
+build_end_time: [1775044199, 111131000]
+inputs:
+  "/Users/gregorg/Dev/standup/DailyStandup/AppState.swift": [1774970913, 298666344]
+  "/Users/gregorg/Dev/standup/DailyStandup/AudioRecorder.swift": [1774610672, 735259785]
+  "/Users/gregorg/Dev/standup/DailyStandup/DailyStandupApp.swift": [1774971102, 185092940]
+  "/Users/gregorg/Dev/standup/DailyStandup/GitService.swift": [1774969800, 357708283]
+  "/Users/gregorg/Dev/standup/DailyStandup/MarkdownManager.swift": [1774970285, 173289604]
+  "/Users/gregorg/Dev/standup/DailyStandup/NotificationManager.swift": [1774879843, 773286188]
+  "/Users/gregorg/Dev/standup/DailyStandup/OpenAIService.swift": [1774611237, 947532364]
+  "/Users/gregorg/Dev/standup/DailyStandup/PlanningView.swift": [1774971113, 233198841]
+  "/Users/gregorg/Dev/standup/DailyStandup/ProjectSetupService.swift": [1774970994, 823529434]
+  "/Users/gregorg/Dev/standup/DailyStandup/SetupView.swift": [1774970972, 101923099]
+  "/Users/gregorg/Dev/standup/DailyStandup/StandupView.swift": [1774970610, 995112761]
+  "/Users/gregorg/Dev/standup/DailyStandup/StandupViewModel.swift": [1774971016, 633527202]
+  "/Users/gregorg/Dev/standup/DailyStandup/TodoCache.swift": [1774611556, 6330932]
+  "/Users/gregorg/Dev/standup/DailyStandup/TodoView.swift": [1774611515, 519328766]
+  "/Users/gregorg/Dev/standup/DailyStandup/WhisperService.swift": [1774615695, 843009468]
+  ? "/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/DerivedSources/GeneratedAssetSymbols.swift"
+  : [1775044184, 177398515]

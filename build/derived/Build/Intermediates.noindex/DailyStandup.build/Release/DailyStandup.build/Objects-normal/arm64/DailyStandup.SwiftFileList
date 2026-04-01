@@ -1,0 +1,16 @@
+/Users/gregorg/Dev/standup/DailyStandup/AppState.swift
+/Users/gregorg/Dev/standup/DailyStandup/AudioRecorder.swift
+/Users/gregorg/Dev/standup/DailyStandup/DailyStandupApp.swift
+/Users/gregorg/Dev/standup/DailyStandup/GitService.swift
+/Users/gregorg/Dev/standup/DailyStandup/MarkdownManager.swift
+/Users/gregorg/Dev/standup/DailyStandup/NotificationManager.swift
+/Users/gregorg/Dev/standup/DailyStandup/OpenAIService.swift
+/Users/gregorg/Dev/standup/DailyStandup/PlanningView.swift
+/Users/gregorg/Dev/standup/DailyStandup/ProjectSetupService.swift
+/Users/gregorg/Dev/standup/DailyStandup/SetupView.swift
+/Users/gregorg/Dev/standup/DailyStandup/StandupView.swift
+/Users/gregorg/Dev/standup/DailyStandup/StandupViewModel.swift
+/Users/gregorg/Dev/standup/DailyStandup/TodoCache.swift
+/Users/gregorg/Dev/standup/DailyStandup/TodoView.swift
+/Users/gregorg/Dev/standup/DailyStandup/WhisperService.swift
+/Users/gregorg/Dev/standup/build/derived/Build/Intermediates.noindex/DailyStandup.build/Release/DailyStandup.build/DerivedSources/GeneratedAssetSymbols.swift
